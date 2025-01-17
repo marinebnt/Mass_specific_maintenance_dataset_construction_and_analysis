@@ -1,0 +1,26 @@
+{
+    "id": "6E498B83",
+    "path": "~/osmose/parameterizing_ev-osmose-med/tests/repository_for_zenodo/02-Analysis/Scripts/plot_tot_PCA.R",
+    "project_path": "02-Analysis/Scripts/plot_tot_PCA.R",
+    "type": "r_source",
+    "hash": "1906990480",
+    "contents": "",
+    "dirty": false,
+    "created": 1736963008330.0,
+    "source_on_save": false,
+    "relative_order": 7,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "207,0",
+        "scrollLine": "178"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1736931875,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1736931875,
+    "read_only": false,
+    "read_only_alternatives": []
+}

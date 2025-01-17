@@ -1,0 +1,26 @@
+{
+    "id": "F0B938D2",
+    "path": "~/osmose/parameterizing_ev-osmose-med/tests/repository_for_zenodo/02-Analysis/Scripts/01-Prepare_data_for_analysis.R",
+    "project_path": "02-Analysis/Scripts/01-Prepare_data_for_analysis.R",
+    "type": "r_source",
+    "hash": "3191992065",
+    "contents": "",
+    "dirty": false,
+    "created": 1736951137957.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "15,82",
+        "scrollLine": "2"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1736904886,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1736904886,
+    "read_only": false,
+    "read_only_alternatives": []
+}

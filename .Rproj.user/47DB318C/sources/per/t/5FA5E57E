@@ -1,0 +1,26 @@
+{
+    "id": "5FA5E57E",
+    "path": "~/osmose/parameterizing_ev-osmose-med/tests/repository_for_zenodo/02-Analysis/Scripts/plot_elasmo_PCA.R",
+    "project_path": "02-Analysis/Scripts/plot_elasmo_PCA.R",
+    "type": "r_source",
+    "hash": "692223600",
+    "contents": "",
+    "dirty": false,
+    "created": 1736964591018.0,
+    "source_on_save": false,
+    "relative_order": 8,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "254,9",
+        "scrollLine": "228"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1736964625,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1736964625774,
+    "read_only": false,
+    "read_only_alternatives": []
+}

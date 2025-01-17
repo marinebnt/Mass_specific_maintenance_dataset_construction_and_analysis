@@ -1,0 +1,26 @@
+{
+    "id": "D6B567B3",
+    "path": "~/osmose/parameterizing_ev-osmose-med/c_m_with_datarmor/ANALYSIS/comparesem.R",
+    "project_path": null,
+    "type": "r_source",
+    "hash": "976785495",
+    "contents": "",
+    "dirty": true,
+    "created": 1736348259965.0,
+    "source_on_save": false,
+    "relative_order": 14,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "696,9",
+        "scrollLine": "678"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1736844863,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1736863369714,
+    "read_only": false,
+    "read_only_alternatives": []
+}
