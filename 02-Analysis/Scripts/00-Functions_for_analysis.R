@@ -2,8 +2,11 @@
 # 14/10/24 
 # functions used by the annex scripts
 
-
-
+library(knitr)
+library(kableExtra)
+library(archetypes)
+library(ggtern)
+library(tidyverse)
 library(archetypes)
 library(stringr)
 library(dplyr)
@@ -86,14 +89,6 @@ plotggtern <- function(dataphylo, AA, vecAA_eq, bins){
     # Use scale_fill_gradientn() for custom color gradient
     scale_fill_gradientn(colors = c("darkorchid4", "#4575b4", "#91bfdb", "#fee090", "#fc8d59","#d73027"), 
                          name = "Standardized \nmass-specific \nmaintenance")
-    # ggtern(df, aes(a, b, c))+ 
-    # #theme_rgbw()+
-    # geom_tri_tern(bins=6,fun=median,aes(value=d,fill=..stat..))+  
-    # stat_tri_tern(bins=6,fun=median,
-    #               geom='text',
-    #               aes(value=d,label=sprintf("%.2f",..stat..)),
-    #               size=4, color='chartreuse4',centroid=TRUE, fontface = c("bold"))+
-    # scale_fill_viridis(option="rocket", direction = -1, name="Standardized \nmass-specific \nmaintenance")
   return(plot)
 }
 
@@ -108,13 +103,6 @@ dataacp_add_colorvector <- function(dataphylo, kclusters, dataacp){
   k <- max(result$cluster)
   centers <- result$centers
   cluster_centroid <- centers[result$cluster]
-
-  
-  # plot(x, col=result$cluster, pch=result$cluster, cex=1,
-  #      main="Optimal k-means clustering with k estimated",
-  #      sub=paste("Number of clusters is estimated to be", k))
-  # abline(h=result$centers, col=1:k, lty="dashed", lwd=2)
-  # legend("topleft", paste("Cluster", 1:k), col=1:k, pch=1:k, cex=1, bty="n")
   
   # extract clusters to use as color vector
   colACP <- cluster_centroid
@@ -192,13 +180,11 @@ preparedataforplotp <- function(numbPCA1, numbPCA2, dataacp, AA, PCA){
 plotPCAclean <- function(veccol, vecAA, PCA){
   
   palette = "viridis"
-
-  # if (sum(grepl("ab", rownames(PCA$rotation)))>0){rownames(PCA$rotation)[grepl("hab", rownames(PCA$rotation))] <- "habitat"}
   
   plotPCA <- ggplot() +
     geom_hline(yintercept = 0, lty = 2) +
     geom_vline(xintercept = 0, lty = 2) +
-    geom_point(data = dataacpPLOT, aes(x = PC1, y = PC2, color = as.factor(colACP)), size=1.5)+ # as.factor(Class) + as.factor(tmax)))+#  pch=dataacp$colClass
+    geom_point(data = dataacpPLOT, aes(x = PC1, y = PC2, color = as.factor(colACP)), size=1.5)+ 
     geom_segment(data = rotation,
                  aes(x = 0, y = 0, xend = PC1*pozarrow, yend = PC2*pozarrow),
                  arrow = arrow(length = unit(0.25, "mm")),
@@ -212,30 +198,24 @@ plotPCAclean <- function(veccol, vecAA, PCA){
               colour = "white", fontface = c("bold"),hjust=1, size=4.5)+
     geom_text_repel() +
     scale_colour_viridis_d(name="c_m clusters", option=palette, direction = -1)+
-    geom_point(size=6.2, aes(matrixAAinPCA[,numbPCA1]+0.02, matrixAAinPCA[,numbPCA2]), #pch=19,
+    geom_point(size=6.2, aes(matrixAAinPCA[,numbPCA1]+0.02, matrixAAinPCA[,numbPCA2]), 
                colour="white")+
-    geom_point(size=6, aes(matrixAAinPCA[,numbPCA1], matrixAAinPCA[,numbPCA2]), #pch=19,
+    geom_point(size=6, aes(matrixAAinPCA[,numbPCA1], matrixAAinPCA[,numbPCA2]), 
                colour=veccol)+
-    # geom_text(aes(matrixAAinPCA[,numbPCA1]-0.02-1, c(matrixAAinPCA[,numbPCA2]-0.2-0.01)), #pch=19,
-    #           colour=c("white"),
-    #           label = vecAA, fontface = c("bold"), hjust=-0.25, size=5)+
-    geom_text(aes(matrixAAinPCA[,numbPCA1]-0.02-1, c(matrixAAinPCA[,numbPCA2]-0.2-0.01)), #pch=19,
+    geom_text(aes(matrixAAinPCA[,numbPCA1]-0.02-1, c(matrixAAinPCA[,numbPCA2]-0.2-0.01)), 
               colour=c("black"),
               label = vecAA, fontface = c("bold"), hjust=-0.25, size=5.2)+
-    geom_text(aes(matrixAAinPCA[,numbPCA1]-1, c(matrixAAinPCA[,numbPCA2]-0.2-0.01)), #pch=19,
+    geom_text(aes(matrixAAinPCA[,numbPCA1]-1, c(matrixAAinPCA[,numbPCA2]-0.2-0.01)), 
               colour=veccol,
               label = vecAA, fontface = c("bold"), hjust=-0.25, size=5)+
     labs(color="c_m quantiles clustering")+
     xlab(label = paste0("PC", numbPCA1, " ", round(eigenval[1],digits = 2) , "% var"))+
     ylab(label = paste0("PC", numbPCA2, " ", round(eigenval[2],digits = 2) , "% var"))+ 
-    theme(#panel.grid.major = element_blank(),
+    theme(
       panel.background = element_rect(fill = "azure3",
                                       colour = "azure3",
                                       linewidth = 0.5, linetype = "solid"),
-       panel.grid.minor = element_blank())#+
-    # geom_text(data = dataacpPLOT, aes(x = PC1, y = PC2, label=Species), size=2)
-    # 
-    # 
+       panel.grid.minor = element_blank())
   return(list(plotPCA))
 }
 
@@ -245,14 +225,12 @@ plotPCA_knownc_m <- function(veccol, vecAA, PCA){
   
   palette = "viridis"
   
-  # if (sum(grepl("ab", rownames(PCA$rotation)))>0){rownames(PCA$rotation)[grepl("hab", rownames(PCA$rotation))] <- "habitat"}
-  
   plotPCA <- ggplot() +
     geom_hline(yintercept = 0, lty = 2) +
     geom_vline(xintercept = 0, lty = 2) +
     geom_point(data = dataacpPLOT, aes(x = PC1, y = PC2, color = ifelse(KNOWN, as.factor(colACP), "grey")), 
                size=ifelse(dataacpPLOT$KNOWN, 2, 1.5), 
-               alpha = ifelse(dataacpPLOT$KNOWN, 1, 0.05))+ # as.factor(Class) + as.factor(tmax)))+#  pch=dataacp$colClass
+               alpha = ifelse(dataacpPLOT$KNOWN, 1, 0.05))+ 
     geom_segment(data = rotation,
                  aes(x = 0, y = 0, xend = PC1*pozarrow, yend = PC2*pozarrow),
                  arrow = arrow(length = unit(0.25, "mm")),
@@ -266,30 +244,27 @@ plotPCA_knownc_m <- function(veccol, vecAA, PCA){
               colour = "black", fontface = c("bold"),hjust=1, size=4)+
     geom_text_repel() +
     scale_colour_viridis_d(name="c_m clusters", option=palette, direction = -1)+
-    geom_point(size=6, aes(matrixAAinPCA[,numbPCA1]+0.02, matrixAAinPCA[,numbPCA2]), #pch=19,
+    geom_point(size=6, aes(matrixAAinPCA[,numbPCA1]+0.02, matrixAAinPCA[,numbPCA2]), 
                colour="white", alpha=1/2)+
-    geom_point(size=6, aes(matrixAAinPCA[,numbPCA1], matrixAAinPCA[,numbPCA2]), #pch=19,
+    geom_point(size=6, aes(matrixAAinPCA[,numbPCA1], matrixAAinPCA[,numbPCA2]), 
                colour=veccol, alpha=1/2)+
-    geom_text(aes(matrixAAinPCA[,numbPCA1]+0.02-1, c(matrixAAinPCA[,numbPCA2])), #pch=19,
+    geom_text(aes(matrixAAinPCA[,numbPCA1]+0.02-1, c(matrixAAinPCA[,numbPCA2])), 
               colour=c("black"),
               label = vecAA, fontface = c("bold"), hjust=-0.25, size=5)+
-    geom_text(aes(matrixAAinPCA[,numbPCA1]-0.02-1, c(matrixAAinPCA[,numbPCA2])), #pch=19,
+    geom_text(aes(matrixAAinPCA[,numbPCA1]-0.02-1, c(matrixAAinPCA[,numbPCA2])), 
               colour=c("white"),
               label = vecAA, fontface = c("bold"), hjust=-0.25, size=5)+
-    geom_text(aes(matrixAAinPCA[,numbPCA1]-1, c(matrixAAinPCA[,numbPCA2])), #pch=19,
+    geom_text(aes(matrixAAinPCA[,numbPCA1]-1, c(matrixAAinPCA[,numbPCA2])), 
               colour=veccol,
               label = vecAA, fontface = c("bold"), hjust=-0.25, size=5)+
     labs(color="c_m quantiles clustering")+
     xlab(label = paste0("PC", numbPCA1, " ", round(eigenval[1],digits = 2) , "% var"))+
     ylab(label = paste0("PC", numbPCA2, " ", round(eigenval[2],digits = 2) , "% var"))+ 
-    theme(#panel.grid.major = element_blank(),
+    theme(
       panel.background = element_rect(fill = "azure3",
                                       colour = "azure3",
                                       linewidth = 0.5, linetype = "solid"),
-      panel.grid.minor = element_blank())#+
-  # geom_text(data = dataacpPLOT, aes(x = PC1, y = PC2, label=Species), size=2)
-  # 
-  # 
+      panel.grid.minor = element_blank())
   return(list(plotPCA))
 }
 
@@ -338,6 +313,7 @@ checkphylosemdata <- function(fileID, semID, trait, name, sample, maxCV){
   rest      <- dataext_traits[whichNA,]
   data      <- read.csv(paste0(path_phylosem_out, "/output", fileID, "_", modelname[semID], "psemFINAL", name, traitname, ".csv"))
   
+  # change units of the invariants traits (Beverton and Holt)
   if(traittotest == "tm"){
     rest$tm <- log(exp(rest$tm)/rest$M)
     data$tm <- log(exp(data$tm)/data$M)
@@ -346,11 +322,6 @@ checkphylosemdata <- function(fileID, semID, trait, name, sample, maxCV){
     rest$Lm <- rest$Lm+rest$Loo
     data$Lm <- data$Lm+data$Loo
   }
-  
-  # correct 'rest' considering the infered data is a ratio, and not the observed data (Lm and tm traits)
-  ##NOT SURE ABOUT THAT
-  # data$Lm <- data$Lm+data$Loo
-  # data$tm <- log(exp(data$tm)/data$M)
   
   #identify data to compare
   IDnonarest <- which(!is.na(rest[, traittotest]))
@@ -453,17 +424,14 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
         plt = ggplot(dataseterrorE, aes(d = expected, m = infered)) + geom_roc(n.cuts = 0) + 
           ggtitle(paste0(names_var_i, "\nAUC =", AUC, "%"))+
           geom_abline (slope=1, intercept = 0, linetype = "dashed", color="Red")+
-          #annotate("text", x = .75, y = .25, label = paste("AUC =", AUC))+
           theme_classic()+
           theme(axis.text.y = element_text(size = 9),
                 axis.text.x = element_text(size = 9),
-                # legend.title = element_blank(),# legend.position = "none",
                 plot.title = element_text(size=12))
       }
-      if (trait == "c_m"){ # && name==nameCV[3]
+      if (trait == "c_m"){ 
         plt <- ggplot(dataseterrorE, aes(x = `infered`, y = `expected`)) +
           geom_point(pch = 19, alpha = 0.6, colour = ifelse(dataseterrorE$Booleand_outliers, "darkorange", "black")) +
-          #ifelse(abs(dataseterrorE$infered - dataseterrorE$expected) > 6.5, "darkorange", "black")) +
           geom_abline(slope = 1, intercept = 0, aes(color = "red"), 
                       color = "red", linetype = "dashed", lwd = 1.5) +
           geom_smooth(aes(color = "blue")) +
@@ -483,28 +451,22 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       if(!(sum(dataseterrorE$expected %in% c(1,0,NA))==length(dataseterrorE$expected)) && !(trait == "c_m")) {
         dataseterrorE$LineType <- factor("LOESS")
         plt <- ggplot(dataseterrorE, aes(x=`infered`, y=`expected`)) +
-          geom_point(pch=21, alpha=0.5)+ #aes(col=ifelse(abs(errorpercent)>25, "big error (>25 %)", "small error (<25 %)"))) +
+          geom_point(pch=21, alpha=0.5)+ 
           geom_abline(slope = 1, intercept = 0, aes(color="red"), color="red", linetype = "dashed", lwd = 1.5)  +
-          # geom_abline(slope=1, intercept = 0, linetype = "dashed", color="Red", lwd=1.5)+
           geom_smooth(aes(color = "blue", )) +
-          # labs(color = "Line Type", linetype = "Line Type")+
-          # geom_text(aes(label=ifelse(abs(errorpercent)>25, label," ")),
-          # hjust=0.75,vjust=0.1, size=3)+#, check_overlap = TRUE)+
           theme_classic()+
-          theme(#legend.title = element_blank(), 
+          theme(
             plot.title = element_text(size=12),
             axis.text.y = element_text(size = 9),
             axis.text.x = element_text(size = 9))+
           ggtitle(paste0(names_var_i, paste0("\nPVE=", label_percent()(PVEe))))+
-          # scale_color_manual(values = c("LOESS" = "blue", "x=y" = "red")) +
-          # scale_linetype_manual(values = c("LOESS" = "solid", "x=y" = "dashed"))+
           scale_color_identity(name = "Model fit",
                                breaks = c("red", "blue"),
                                labels = c("x=y", "Loess"),
                                guide = "legend") + 
           expand_limits(x = 0, y = 0)
       }
-      grDevices::pdf(file=paste0(pathoutput_CV,  "/plot/", modelname[sem], name, j, "plotCV.pdf"))
+      grDevices::pdf(file=paste0(pathoutput_CV,  "/plot_CrossValidation/", modelname[sem], name, j, "plotCV.pdf"))
       print(plt)
       dev.off()
       
@@ -517,11 +479,10 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       dev.off()
     }
     if (length(trait)>1){
-      # save.image(myplotlist, paste0(pathoutput, "/", modelname[sem], name, "plotarrangedCV.RData"))#save.image(plotlist, paste0(pathoutput, "/", modelname[semID], name, "plotarrangedCV.RData"))
       length(myplotlist)      
       par(oma=c(1, 1, 1, 1))
       par(mar=c(5, 5, 4, 2) + 0.1) 
-      arranged <- ggarrange(plotlist=myplotlist, ncol=ncol, nrow=nrow,#,  widths=c(0.25,0.25),
+      arranged <- ggarrange(plotlist=myplotlist, ncol=ncol, nrow=nrow,
                             labels=NULL, align="hv", 
                             font.label = list(size=7.5, color="black", face="bold", family=NULL, legend="right"), 
                             common.legend =  TRUE) +
@@ -530,7 +491,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       if (length(arranged[[1]])==length(arranged[[2]])) {arranged_annot <-  lapply(arranged, plot_arrange)}
       else {arranged_annot <-  plot_arrange(arranged)}
       
-      grDevices::pdf(file=paste0(pathoutput_CV, "/plot/", modelname[sem], name, "plotarrangedCV.pdf"), height=8, width=15.37)
+      grDevices::pdf(file=paste0(pathoutput_CV, "/plot_CrossValidation/", modelname[sem], name, "plotarrangedCV.pdf"), height=8, width=15.37)
       print(arranged_annot)
       dev.off()
     }
@@ -541,9 +502,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
 
 plot_arrange <- function(y){
   a <- annotate_figure(y, left=text_grob("Expected trait value", rot=90, vjust=1),
-                                        # gp=gpar(cex=1.1)),  
                        bottom=text_grob("Infered trait value", vjust=1))
-                                       # gp=gpar(cex=1.1)))+
     theme(plot.margin = margin(r=15 , b = 15))
   return(a)
 }

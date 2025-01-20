@@ -1,5 +1,3 @@
-# NOT LOG
-
 # beneat marine 
 # 14/10/24 
 ############################
@@ -13,25 +11,18 @@
 #*****
 ####Preparing dataset####
 #******
-setwd("C:/Users/mbeneat/Documents/osmose/parameterizing_ev-osmose-med/tests/repository_for_zenodo")
 
 source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
 
 
+############################## Prepare dataset ##########################
 
 path_phylosem_out <- paste0(getwd(), "/01-Simulations/Outputs/phylosem_output")
 path_output_genus <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem/output_tot_stdmorpho")
 path_analysis_out <- paste0(getwd(), "/02-Analysis/Outputs")
 
-
-# load(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
-
-
-# load(paste0(path_phylosem_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
 dataphylo <- read.csv(paste0(path_phylosem_out, "/output_TLstdmecapsemFINALtot.csv"))
-datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosemLOG.csv"))
+datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosem.csv"))
 datagenus$na <- is.na(datagenus$c_m)
 
 # add a column with a number / habitat
@@ -75,7 +66,6 @@ dataplot_noelasmo  <- data.frame(dataphylo_noelasmo$K, dataphylo_noelasmo$Mortal
                                  dataphylo_noelasmo[, -which(colnames(dataphylo_noelasmo) %in%
                                                                c("Class", "Order", "Family", "Genus", "Species", "SpecCodeode", "c_m", "T"))])
 dataacp_noelasmo   <- data.frame(dataphylo_noelasmo)
-#colnames(dataplot_noelasmo)[c(1,2,3)] <- c("K", "M", "Temperature")
 
 
 #*****
@@ -85,7 +75,6 @@ dataplot_noteleo  <- data.frame(dataphylo_noteleo$K, dataphylo_noteleo$Mortality
                                 dataphylo_noteleo[, -which(colnames(dataphylo_noteleo) %in%
                                                              c("Class", "Order", "Family", "Genus", "Species", "SpecCodeode", "c_m", "T"))])
 dataacp_noteleo   <- data.frame(dataphylo_noteleo)
-#colnames(dataplot_noelasmo)[c(1,2,3)] <- c("K", "M", "Temperature")
 
 
 #********
@@ -95,13 +84,11 @@ dataplot_noteleo_pela  <- data.frame(dataphylo_noteleo_pela$K, dataphylo_noteleo
                                      dataphylo_noteleo_pela[, -which(colnames(dataphylo_noteleo_pela) %in%
                                                                        c("Class", "Order", "Family", "Genus", "Species", "SpecCodeode", "c_m", "T"))])
 dataacp_noteleo_pela   <- data.frame(dataphylo_noteleo_pela)
-#colnames(dataplot_noelasmo)[c(1,2,3)] <- c("K", "M", "Temperature")
 
 
-############################## TRAITS THV ##########################
+############################## RUN Archetypal analysis ##########################
 
-traits = c("Weight.Inf", "Age.max", "Fecundity", "K", "Trophic.lvl", "Habitat")
-traits_2 = c("Age.mat", "Age.max", "Mortality", "K", "Trophic.lvl", "Habitat")
+traits = c("Age.mat", "Age.max", "Mortality", "K", "Trophic.lvl", "Habitat")
 veccol_teleo <- c("royalblue","darkgreen","tomato")
 veccol_elasmo <- c("orange", "purple4", "pink")
 veccol_tot <- c("royalblue", "tomato", "darkgreen")
@@ -112,75 +99,13 @@ vecAA_elasmo <- c("+ Age max", "Pelagic", "Demersal")
 vecAA_elasmo_pela <- c("+K", "Pelagic", "-fec/+demer")
 
 vecAA_eq <- c("a", "b", "c")
-
 kmax=3
 
 
 
-
-dataphylo_noelasmo_2 <- dataphylo_noelasmo
-dataphylo_noteleo_2  <- dataphylo_noteleo
-dataphylo_2          <- dataphylo
-dataplot_noelasmo_2 <- dataplot_noelasmo
-dataplot_noteleo_2  <- dataplot_noteleo
-dataplot_2          <- dataplot
-dataacp_noelasmo_2 <- dataacp_noelasmo
-dataacp_noteleo_2  <- dataacp_noteleo
-dataacp_2          <- dataacp
-
-
-AAelasmo_2 <- runAA(dataplot_noteleo_2, traits_2, kmax)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-AAtot_2    <- runAA(dataplot_2, traits_2, kmax)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-AAteleo_2  <- runAA(dataplot_noelasmo_2, traits_2, kmax)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
-
-treeelasmo <- treeforpPCA(dataphylo_noteleo_2)
-rownames(dataplot_noteleo_2) <- stringr::str_replace(dataphylo_noteleo_2$Species, " ", "_")
-pPCAelasmo_2 <- runpPCA(dataplot_noteleo_2, traits_2, tree=treeelasmo)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
-treetot <- treeforpPCA(dataphylo_2)
-rownames(dataplot_2) <- stringr::str_replace(dataphylo_2$Species, " ", "_")
-pPCAtot_2 <- runpPCA(dataplot_2, traits_2, tree=treetot)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
-treeteleo <- treeforpPCA(dataphylo_noelasmo_2)
-rownames(dataplot_noelasmo_2) <- stringr::str_replace(dataphylo_noelasmo_2$Species, " ", "_")
-pPCAteleo_2 <- runpPCA(dataplot_noelasmo_2, traits_2, tree=treeteleo)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
-
-
 AAteleo <- runAA(dataplot_noelasmo, traits, kmax)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
 AAelasmo <- runAA(dataplot_noteleo, traits, kmax)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
 AAtot <- runAA(dataplot, traits, kmax)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
-AAteleo2<- runAA(dataplot_noelasmo, traits, kmax=2)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
-
-treeteleo <- treeforpPCA(dataphylo_noelasmo)
-rownames(dataplot_noelasmo) <- stringr::str_replace(dataphylo_noelasmo$Species, " ", "_")
-pPCAteleo <- runpPCA(dataplot_noelasmo, traits, tree=treeteleo)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
-treeelasmo <- treeforpPCA(dataphylo_noteleo)
-rownames(dataplot_noteleo) <- stringr::str_replace(dataphylo_noteleo$Species, " ", "_")
-pPCAelasmo <- runpPCA(dataplot_noteleo, traits, tree=treeelasmo)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
-
-treetot <- treeforpPCA(dataphylo)
-rownames(dataplot) <- stringr::str_replace(dataphylo$Species, " ", "_")
-pPCAtot <- runpPCA(dataplot, traits, tree=treetot)
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
 
 
 
@@ -189,39 +114,11 @@ save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
 
 
 
-#######################
-# MORPHO###############
-
-traits_morpho = c("Lower_jaw_length", "Max_body_depth", "Max_body_width", "Min_caudalpeduncle_depth", "Woo")
-veccol_elasmo_morpho <- c("chocolate4", "darkgoldenrod1", "darkorange")
-veccol_teleo_morpho <- c("darkorange", "darkgoldenrod1", "chocolate4")
-veccol_tot_morpho <- c("chocolate4", "darkorange", "darkgoldenrod1")
-vecAA_elasmo_morpho <- c("+Woo", "+BodyD", "-PedD")
-vecAA_teleo_morpho <- c("-BodyW", "+Woo", "+PedD")
-vecAA_tot_morpho <- c("+PedD", "-BodyW", "+Woo")
-
-
-#********
-#####aa#####
-#**********
-
-AAteleo_morpho <- runAA(dataplot_noelasmo, traits_morpho, kmax)
-AAelasmo_morpho <- runAA(dataplot_noteleo, traits_morpho, kmax)
-AAtot_morpho <- runAA(dataplot, traits_morpho, kmax)
-
-treeteleo <- treeforpPCA(dataphylo_noelasmo)
-rownames(dataplot_noelasmo) <- stringr::str_replace(dataphylo_noelasmo$Species, " ", "_")
-pPCAteleo_morpho <- runpPCA(dataplot_noelasmo, traits_morpho, tree=treeteleo)
-
-treeelasmo <- treeforpPCA(dataphylo_noteleo)
-rownames(dataplot_noteleo) <- stringr::str_replace(dataphylo_noteleo$Species, " ", "_")
-pPCAelasmo_morpho <- runpPCA(dataplot_noteleo, traits_morpho, tree=treeelasmo)
-
-treetot <- treeforpPCA(dataphylo)
-rownames(dataplot) <- stringr::str_replace(dataphylo$Species, " ", "_")
-pPCAtot_morpho <- runpPCA(dataplot, traits_morpho, tree=treetot)
-
-
+############################## SAVE outputs ##########################
 
 save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
 
+save(AAteleo, AAelasmo, AAtot, dataphylo, dataacp, dataplot, datagenus, 
+             dataplot_noelasmo, dataacp_noelasmo, dataphylo_noelasmo,
+             dataplot_noteleo, dataacp_noteleo, dataphylo_noteleo, 
+          file=paste0(path_analysis_out, "/IMAGE_AA_CONSTRUCTED.RData"))

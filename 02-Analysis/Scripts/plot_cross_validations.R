@@ -3,37 +3,14 @@
 # Cross validation plots of the data inference
 
 
-setwd("C:/Users/mbeneat/Documents/osmose/parameterizing_ev-osmose-med/tests/repository_for_zenodo")
 load(paste0(getwd(), "/01-Simulations/Outputs/phylosem_output/imageworkspaceEND.RData")) #data needed for cross validation
 path_plots <- paste0(getwd(), "/02-Analysis/Outputs")
 pathoutput_CV <- path_plots
 path_CV <- paste0(getwd(), "/01-Simulations/Outputs/phylosem_output")
 source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
 
+
 semID=1
-
-ncol = 3
-nrow = 3
-# plot_checkphylosemdata(semID, trait=c("c_m", "K", "M", "Loo", "habitatpelagic", "habitatbenthopelagic", "habitatdemersal", "Woo"), name=nameCV[2], 
-                       # sample=list(sampletot$sample), 
-                       # maxCV=list(sampletot$maxCV))
-ncol = 6
-nrow = 3
-names_var <- c("log(MSM)", "log(Maturation age)", "log(Maturation length)", 
-                             "log(Max age)", "K",
-               "Benthopelagic", "log(Infinity weight)", "M", "Trophic level", "log(Infinitylength)", "log(Fecundity)", "Demersal",  
-                             "log(Peduncle depth)", 
-                             "log(Jaw length)", "log(Body depth)", "log(Body width)", "log(Temperature)", "Pelagic ")
-traits = c("c_m", "tm", "Lm", "tmax", "K", "habitatbenthopelagic", 
-           "Woo", "M", "TLDiet", "Loo", "fecundity", "habitatdemersal",                         
-           "Min_caudalpeduncle_depth", "Lower_jaw_length", "Max_body_depth", "Max_body_width","Temperature", "habitatpelagic") 
-plot_checkphylosemdata(semID, trait=traits, name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var, 
-                       plot_layout)
-
-
-
 
 
 p <- plot_checkphylosemdata(semID, trait="c_m", name=nameCV[2],
@@ -105,29 +82,8 @@ final<-p+
  ((ph1+ ph2 + ph3 + plot_layout(ncol=2, nrow=2, guides = "collect"))) + 
   plot_layout(guides = "collect", design=design)   # guide_area() + 
 
-grDevices::pdf(file=paste0(pathoutput_CV, "/plot/", modelname[sem], name, "plotarrangedCV_clean.pdf"), height=9, width=15.37)
+grDevices::pdf(file=paste0(pathoutput_CV, "/plot_CrossValidation/", "plotarrangedCV_clean.pdf"), height=9, width=15.37)
 print(final)
 dev.off()
-
-
-
-plot_checkphylosemdata(semID, trait=traits, name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var)semID=1
-plot_checkphylosemdata(semID, trait=c("c_m"), name=nameCV[3], 
-                       sample=list(samplec_mspe$sample), 
-                       maxCV=list(samplec_mspe$maxCV), names_var=c("log(MSM)"))
-
-plot_checkphylosemdata(semID, trait=c("Max_body_depth"), name=nameCV[2], 
-                       sample=list(sampletot$sample), 
-                       maxCV=list(sampletot$maxCV), names_var=c("log(age mat)"))
-
-
-semmodel="TLstdmeca"
-semID=1
-plot_checkphylosemdata(semID, trait=c("habitatpelagic"), name=nameCV[2], 
-                       sample=list(samplec_mspe$sample), 
-                       maxCV=list(samplec_mspe$maxCV), names_var=c("Pelagic"))
-
 
 
