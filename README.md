@@ -1,14 +1,14 @@
-### 2025 - Mass-specific dataset creation and data analysis
+### 2025 - Mass-specific dataset construction and data analysis
 ## Overview
 This repository gathers the codes and data we used in the study. First is the dataset construction, and second is the data analysis. Codes and data generated and transformed in the study are separated in their respective folders.
 
 ## Authors & Contact details:
-Marine BENEAT (Marine.Beneat@ifremer.fr),
-Alaia MORELL (amorell@ifremer.fr),
-Fabien MOULLEC (fabien.moullec@umontpellier.fr),
-Nicolas BARRIER (nicolas.barrier@ird.fr),
-Yunne SHIN (yunne-jai.shin@ird.fr),
-Bruno ERNANDE (Bruno.Ernande@ifremer.fr).
+Marine BENEAT (Marine.Beneat@ifremer.fr),  
+Alaia MORELL (amorell@ifremer.fr),  
+Fabien MOULLEC (fabien.moullec@umontpellier.fr),  
+Nicolas BARRIER (nicolas.barrier@ird.fr),  
+Yunne SHIN (yunne-jai.shin@ird.fr),  
+Bruno ERNANDE (Bruno.Ernande@ifremer.fr).  
 Responsible of data collection, codes development and online upload: Marine BENEAT.
 
 ## Cite the code:
