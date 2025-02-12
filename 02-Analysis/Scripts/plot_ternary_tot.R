@@ -2,11 +2,18 @@
 # 14/10/24 
 # Ternary plots of the archetypal analysis
 
-path_phylosem_out <- paste0(getwd(), "/02-Analysis/Outputs")
-path_plots <- paste0(getwd(), "/02-Analysis/Outputs/plots")
 
-load(paste0(path_phylosem_out, "/IMAGE_AA_FOR_ANALYSIS.RData")) # archetypal analysis and pca outputs
+OUTPUT = "Outputs_1000"
+OUTPUT = "Outputs_try_again"
+OUTPUT="Outputs_try_again"
+
+colAA = c("royalblue", "darkgreen", "tomato")
+labelAA = c("Opportunistic", "Equilibrium", "Periodic")
+
+load(paste0(getwd(), "/02-Analysis/", OUTPUT,"/IMAGE_AA_FOR_ANALYSIS.RData"))
 source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
+path_phylosem_out <- paste0(getwd(), "/02-Analysis/", OUTPUT)
+path_plots <- paste0(getwd(), "/02-Analysis/", OUTPUT,"/plots")
 
 vecAA_eq = c("a","b","c")
 
@@ -16,15 +23,15 @@ AAAtot <- AAtot
 # ternary plot with the gradient of mass specific maintenance values
 beta_iv1_tot = dataplot[, which(colnames(dataplot) %in%  traits)]
 t(parameters(AAAtot))     ## This shows the trait values of the selected archetypes
-veccol_tot_barplot <- c("royalblue", "darkgreen", "tomato")
+veccol_tot_barplot <- colAA
 barplot(AAAtot, beta_iv1_tot, percentiles=TRUE, col.atypes = veccol_tot_barplot)
 barplot(AAAtot, beta_iv1_tot, percentiles=TRUE)  # same but as a barplot
 pcplot(AAAtot, beta_iv1_tot, atypes.col = veccol_tot_barplot, atypes.lty =c(1,2,3)) # same but as a plot showing each value
 plot1 <- plotggtern(dataphylo=dataphylo, AA=AAAtot, vecAA_eq=vecAA_eq, bins=6)+
   labs(
-    x = "Equilibrium",       # Custom name for x-axis
-    y = "Periodic",       # Custom name for y-axis
-    z = "Opportunistic",        # Custom name for z-axis
+    x = "Opportunistic",       # Custom name for x-axis
+    y = "Equilibrium",       # Custom name for y-axis
+    z = "Periodic",        # Custom name for z-axis
   )+
   theme(
     tern.axis.title.T = element_text(size = 12, angle = 0, hjust = 0.5), # Top axis
@@ -46,7 +53,7 @@ genecolour2 <- rep('NA', nrow(df))
 
 genecolour[dataphylo$Family == 'Gobiidae'] <- 'brown3' 
 genecolour[dataphylo$Family == 'Sparidae'] <- '#00b159'
-genecolour[dataphylo$Family == 'Squalidae'] <- 'royalblue'
+genecolour[dataphylo$Family == 'Squalidae'] <- 'royalblue' #Squlidae
 genecolour2[dataphylo$Family == 'Gobiidae'] <- 'black'
 genecolour2[dataphylo$Family == 'Sparidae'] <- 'black'
 genecolour2[dataphylo$Family == 'Squalidae'] <- 'black'
@@ -63,9 +70,9 @@ plot <- ggtern(df,aes(x=x,y=y,z=z)) +
   geom_point(colour = genecolour, size=2.5)+
   theme_classic()+
   labs(
-    x = "Equilibrium",       # Custom name for x-axis
-    y = "Periodic",       # Custom name for y-axis
-    z = "Opportunistic",        # Custom name for z-axis
+    x = "Opportunistic",       # Custom name for x-axis
+    y = "Equilibrium",       # Custom name for y-axis
+    z = "Periodic",        # Custom name for z-axis
     colour= "Archetype"
   )+
   theme(

@@ -300,6 +300,7 @@ id_habitat_genus <- rownames(habitat_genus)
 
 c_m   <- rep(-99, length(spetot$Species))
 eps_m <- rep(-99, length(spetot$Species))
+ox_m <- rep(-99, length(spetot$Species))
 for (i  in  seq_along(spetot$Species)){ # in 249){ #
   id_genus    <- which(id_habitat_genus == spetot$Genus[i])
   id_habitat  <- names(which(habitat_genus[id_genus,]>0))
@@ -346,15 +347,23 @@ for (i  in  seq_along(spetot$Species)){ # in 249){ #
     # }
     c_m[i]        <- intercept + gen #+ dem
     eps_m[i]      <- (temgen + tem + temdemer)*boltzmann
+    ox_m[i]       <- data_ox_fr$ox[which(data_ox_fr$ge ==  spetot$Genus[i])]
   }
   else {
     c_m[i]        <- NA
     eps_m[i]      <- NA
+    ox_m[i]       <- NA
   }
   
 }
-spetotm <- cbind(spetot, c_m, eps_m)
+spetotm <- cbind(spetot, c_m, eps_m, ox_m)
 
+
+frame <- data.frame(spetotm$c_m, spetotm$ox_m)
+frame <- na.omit(frame)
+cor <- cor(frame$spetotm.c_m, frame$spetotm.ox_m)
+cat("\n correlation c_m and ox_m before unit conversion \n")
+cat(cor)
 
 
 
@@ -367,6 +376,7 @@ id_habitat_genus <- rownames(habitat_genus)
 
 c_mm   <- rep(-99, length(spetot$Species))
 eps_mm <- rep(-99, length(spetot$Species))
+ox_mm  <- rep(-99, length(spetot$Species))
 for (i  in seq_along(spetot$Species)){ # in 249){ #
   id_genus    <- which(id_habitat_genus == spetot$Genus[i])
   id_habitat  <- names(which(habitat_genus[id_genus,]>0))
@@ -394,13 +404,23 @@ for (i  in seq_along(spetot$Species)){ # in 249){ #
       temhab    <- NA}
     c_mm[i]   <- gen #+ dem
     eps_mm[i] <- (temp )*boltzmann #+ temhab
+    ox_mm[i]  <- data_ox_fr$ox[which(data_ox_fr$ge ==  spetot$Genus[i])]
   }
   else {
     c_mm[i]     <- NA
     eps_mm[i]   <- NA
+    ox_mm[i]    <- NA
   }
 }
-spetotmm <- cbind(spetot, c_mm, eps_mm)
+spetotmm <- cbind(spetot, c_mm, eps_mm, ox_mm)
+
+
+frame_mm <- data.frame(spetotmm$c_mm, spetotmm$ox_mm)
+frame_mm <- na.omit(frame_mm)
+cor <- cor(frame_mm$spetotmm.c_mm, frame_mm$spetotmm.ox_mm)
+cat("\n correlation c_mm and ox_mm before unit conversion \n")
+cat(cor)
+
 head(spetotmm)
 
 datajoined <- left_join(oxdata, spetotmm, by="Species")
@@ -466,6 +486,7 @@ b <- ggplot(dataframe_residlm[which(dataframe_residlm$ref=="lmm_genOFF"),], aes(
 d<-ggarrange(a, b, ncol = 1, nrow = 2, labels = "AUTO",  common.legend = TRUE, legend="right")
 if(!dir.exists(paste0(pathoutput, "/plot_02"))){dir.create(paste0(pathoutput, "/plot_02"), showWarnings = F)}
 ggsave(d, filename=paste0(pathoutput, "/plot_02/", "boxplot_genus_lm.jpg"), width=c(15), height =c(30))
+
 
 
 #* CHANGE C_M AND EPS_M UNIT
@@ -543,6 +564,15 @@ cor(na.omit(spetotmm$eps_m), na.omit(spetotmm$c_m))
 lmepsmcm <- lm(eps_mm~log(c_mm), data=spetotmm)
 
 
+
+frame <- data.frame(log(spetotm$c_m), spetotm$ox_m)
+frame <- na.omit(frame)
+cor <- cor(frame$log.spetotm.c_m., frame$spetotm.ox_m)
+cat("\n correlation c_m and ox_m AFTER unit conversion \n")
+cat(cor)
+
+
+
 ########
 #___________________________________Unit conversion of the mixed linear model outputs
 ########
@@ -603,6 +633,18 @@ cor(na.omit(spetotmm$eps_m), log(na.omit(spetotmm$c_m)))
 cor(na.omit(spetotm$eps_m), na.omit(spetotm$c_m))
 cor(na.omit(spetotmm$eps_m), na.omit(spetotmm$c_m))
 lmepsmcm <- lm(eps_mm~log(c_mm), data=spetotmm)
+
+
+
+frame_tmp<- data.frame(log(spetotmm$c_mm), spetotmm$ox_mm)
+frame_tmp <- na.omit(frame_tmp)
+frame_mm <- cbind(frame_mm, frame_tmp)
+cor <- cor(frame_mm$log.spetotmm.c_mm., frame_mm$spetotmm.ox_mm)
+cat("\n correlation c_mm and ox_mm before unit conversion \n")
+cat(cor)
+cor <- cor(frame_mm$log.spetotmm.c_mm., frame_mm$spetotmm.c_mm)
+cat("\n correlation c_mm and ox_mm before unit conversion \n")
+cat(cor)
 
 
 #####################
@@ -707,7 +749,7 @@ ggplot(data=spetotmm) +
 
 spetotmm$c_m   <- spetotmm$c_mm
 spetotmm$eps_m <- spetotmm$eps_mm
-spetotmm       <- spetotmm[, -which(colnames( spetotmm) %in% c("c_mm", "eps_mm"))]
+spetotmm       <- spetotmm[, -which(colnames(spetotmm) %in% c("c_mm", "eps_mm"))]
 write.csv(spetotmm, paste0(pathoutput, "/spetot_fishabse_c_m_eps_mLMnoHABTREF.csv"))
 
 

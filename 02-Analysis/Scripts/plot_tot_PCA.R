@@ -3,9 +3,17 @@
 # PCA of the complete dataset
 
 
-path_plots <- paste0(getwd(), "/02-Analysis/Outputs/plots")
-load(paste0(getwd(), "/02-Analysis/Outputs/IMAGE_AA_FOR_ANALYSIS.RData"))
+
+OUTPUT = "Outputs_WITHOUTUNITCVLOGNOTKM"
+labelsAA <- c("Equilibrium", "Periodic", "Opportunistic") 
+labelsAA <- c("Opportunistic", "Equilibrium", "Periodic")
+colAA <- c("royalblue", "#00b159", "tomato")
+colAA <- c("tomato", "royalblue", "#00b159")
+
+load(paste0(getwd(), "/02-Analysis/", OUTPUT,"/IMAGE_AA_FOR_ANALYSIS.RData"))
 source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
+path_phylosem_out <- paste0(getwd(), "/02-Analysis/", OUTPUT)
+path_plots <- paste0(getwd(), "/02-Analysis/", OUTPUT,"/plots")
 
 
 AXESTOREPRESENT = c(1,2)
@@ -17,7 +25,7 @@ plot(PCAtot$x[,AXESTOREPRESENT[1]], PCAtot$x[,AXESTOREPRESENT[2]])
 plot(PCAtot)
 res.pca <- PCAtot
 plot(PCAtot)
-dataacp_totPLOT <- dataacp_add_colorvector(dataphylo = dataphylo, kclusters=6, dataacp = dataacp)
+dataacp_totPLOT <- dataacp_add_colorvector(dataphylo = dataphylo, kclusters=7, dataacp = dataacp)
 clusterscentroids <- dataacp_totPLOT[2][[1]]
 listforplot <- preparedataforplot(numbPCA1=AXESTOREPRESENT[1], numbPCA2=AXESTOREPRESENT[2], 
                                   dataacp=dataacp_totPLOT, AA=AAtot, PCA=PCAtot)
@@ -39,7 +47,7 @@ plot(opp_pic)
 # preparing the data for the Archetypes identifications
 datatoadd <- matrixAAinPCA[,AXESTOREPRESENT]
 rownames(datatoadd)<- NULL
-labels <- c("Equilibrium", "Periodic", "Opportunistic") 
+labels <- labelsAA
 datatoadd <- data_frame(x=datatoadd[,1], y=datatoadd[,2], z=labels)
 
 # prepare the data for the arrows indentification
@@ -62,7 +70,7 @@ plot <- fviz_pca_biplot(res.pca, axes = AXESTOREPRESENT,
                     expand = unit(0.5, "mm"), alpha = 0) +
   scale_colour_manual(values = mycol, name = "MSM cluster \ncentroid") +  # Ajustement de la couleur
   geom_point(data = datatoadd, aes(x = x, y = y), pch=c(23,21,22),                 
-             fill = c("royalblue", "#00b159", "tomato"), size = 6, 
+             fill = colAA, size = 6, 
              stroke = 1) +
   geom_point(data = res.pca$x[c(which(dataacp$Species %in% c("Amblyeleotris guttata", "Squalus suckleyi", "Sarpa salpa"))),],
              aes(x = PC1, y = PC2),
@@ -73,12 +81,12 @@ plot <- fviz_pca_biplot(res.pca, axes = AXESTOREPRESENT,
         axis.text = element_text(size = 12),
         panel.border = element_rect(color = "black", fill = NA, size = 0.5),
         legend.key = element_blank()) +
-  add_phylopic(periodic_pic, alpha = 1, x = as.numeric(datatoadd[2, 1]*1.3), 
-               y = as.numeric(datatoadd[2, 2]*1.3), ysize = 0.4) +
-  add_phylopic(elasmo_pic, alpha = 1, x = as.numeric(datatoadd[1, 1]*1.3), 
-               y = as.numeric(datatoadd[1, 2]*1.3), ysize = 0.4) +
-  add_phylopic(opp_pic, alpha = 1, x = as.numeric(datatoadd[3, 1]*1.3), 
-               y = as.numeric(datatoadd[3, 2]*1.3), ysize = 0.4) +
+  add_phylopic(periodic_pic, alpha = 1, x = as.numeric(datatoadd[which(labelsAA=="Periodic"), 1]*1.3), 
+               y = as.numeric(datatoadd[which(labelsAA=="Periodic"), 2]*1.3), ysize = 0.4) +
+  add_phylopic(elasmo_pic, alpha = 1, x = as.numeric(datatoadd[which(labelsAA=="Equilibrium"), 1]*1.3), 
+               y = as.numeric(datatoadd[which(labelsAA=="Equilibrium"), 2]*1.3), ysize = 0.4) +
+  add_phylopic(opp_pic, alpha = 1, x = as.numeric(datatoadd[which(labelsAA=="Opportunistic"), 1]*1.3), 
+               y = as.numeric(datatoadd[which(labelsAA=="Opportunistic"), 2]*1.3), ysize = 0.4) +
   scale_linetype_manual(values = c("solid", "dotted")) +
   guides(linetype = guide_legend("Class"), fill="none", 
          point = guide_legend(override.aes=list(fill=c(mycol[1:4], "white", "white"))))

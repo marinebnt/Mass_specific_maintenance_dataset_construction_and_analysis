@@ -50,14 +50,25 @@ addhabitatcolumn <- function(dataphylo){
 }
 
 
-ratioTOtrait <- function(ratio, operator, IS_OPERATOR_Loo){
+ratioTOtrait <- function(ratio, operator, IS_OPERATOR_Loo, IS_LOG_M){
   
-  if (IS_OPERATOR_Loo)  {
-    trait <- ratio + operator
+  if (IS_LOG_M){
+    if (IS_OPERATOR_Loo)  {
+      trait <- ratio + operator
+    }
+    else {
+      operator[which(operator<0)] <-0.01
+      trait <- ratio - operator
+    }
   }
   else {
-    operator[which(operator<0)] <-0.01
-    trait <- log(exp(ratio) / operator)
+    if (IS_OPERATOR_Loo)  {
+      trait <- ratio + operator
+    }
+    else {
+      operator[which(operator<0)] <-0.01
+      trait <- log(exp(ratio) / operator)
+    }
   }
   return(trait)
 }

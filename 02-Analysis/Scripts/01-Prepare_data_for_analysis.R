@@ -7,22 +7,38 @@
 #* 
 
 
+############### ARE K AND M in LOG ????
+K_M_LOG = T
+
 
 #*****
 ####Preparing dataset####
 #******
+
+OUTPUT = "Outputs_1000"
+OUTPUT_phylo = "Outputs/phylosem_1000"
+OUTPUT="Outputs_WITHOUTUNITCVLOGNOTKM"
+OUTPUT_phylo = "Outputs/phylosem_output_WITHUNITCONVERSIONLOGnotKM"
 
 source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
 
 
 ############################## Prepare dataset ##########################
 
-path_phylosem_out <- paste0(getwd(), "/01-Simulations/Outputs/phylosem_output")
+path_phylosem_out <- paste0(getwd(), "/01-Simulations/", OUTPUT_phylo)
 path_output_genus <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem/output_tot_stdmorpho")
-path_analysis_out <- paste0(getwd(), "/02-Analysis/Outputs")
+path_analysis_out <- paste0(getwd(), "/02-Analysis/", OUTPUT)
 
 dataphylo <- read.csv(paste0(path_phylosem_out, "/output_TLstdmecapsemFINALtot.csv"))
-datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosem.csv"))
+if (K_M_LOG){
+  datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosemLOG.csv"))  
+  IS_LOG_M = T
+}
+if (!K_M_LOG) {
+  datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosem.csv")) 
+  IS_LOG_M = F
+}
+
 datagenus$na <- is.na(datagenus$c_m)
 
 # add a column with a number / habitat
@@ -31,12 +47,12 @@ dataphylo$Species <- str_replace(dataphylo[,"label"], "_", " ")
 dataphylo <- left_join(dataphylo, datagenus[, c("Species", "na")])
 
 # convert ratio of traits into trait value *************
-dataphylo$Lm <- ratioTOtrait(dataphylo$Lm, dataphylo$Loo, IS_OPERATOR_Loo=TRUE)
-dataphylo$tm <- ratioTOtrait(dataphylo$tm, dataphylo$M, IS_OPERATOR_Loo=FALSE) # 1/ M = longevity
+dataphylo$Lm <- ratioTOtrait(dataphylo$Lm, dataphylo$Loo, IS_OPERATOR_Loo=TRUE, IS_LOG_M=IS_LOG_M)
+dataphylo$tm <- ratioTOtrait(dataphylo$tm, dataphylo$M, IS_OPERATOR_Loo=FALSE, IS_LOG_M=IS_LOG_M) # 1/ M = longevity
 
 #remove data that is unrealistic
-dataphylo <- dataphylo[-which(dataphylo$Lm>dataphylo$Loo),]
-dataphylo <- dataphylo[-which(dataphylo$tm>dataphylo$tmax),]
+if(length(which(dataphylo$Lm>dataphylo$Loo))>0) {dataphylo <- dataphylo[-which(dataphylo$Lm>dataphylo$Loo),]}
+if(length(which(dataphylo$tm>dataphylo$tmax))>0) {dataphylo <- dataphylo[-which(dataphylo$tm>dataphylo$tmax),]}
 
 #Standardize
 dataphylo[, -which(colnames(dataphylo) %in% c("Species", "X", "label", "hhabtot", "osmose", "na"))] <-
@@ -116,7 +132,7 @@ AAtot <- runAA(dataplot, traits, kmax)
 
 ############################## SAVE outputs ##########################
 
-save.image(paste0(path_analysis_out, "/IMAGETOT_STD_Log_BodyDepth.RData"))
+save.image(paste0(path_analysis_out, "/IMAGE_AA_FOR_ANALYSIS.RData"))
 
 save(AAteleo, AAelasmo, AAtot, dataphylo, dataacp, dataplot, datagenus, 
              dataplot_noelasmo, dataacp_noelasmo, dataphylo_noelasmo,

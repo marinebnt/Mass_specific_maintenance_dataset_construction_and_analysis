@@ -3,10 +3,15 @@
 # PCA of the Teleostei species
 
 
-path_plots <- paste0(getwd(), "/02-Analysis/Outputs/plots")
-load(paste0(getwd(), "/02-Analysis/Outputs/IMAGE_AA_FOR_ANALYSIS.RData"))
-source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
+OUTPUT = "Outputs_WITHOUTUNITCVLOGNOTKM"
+labelsAA <- c("Opportunistic", "Equilibrium", "Periodic")
+labelsAA <- c("Opportunistic", "Periodic", "Equilibrium")
+colAA <- c("tomato", "royalblue", "#00b159")
+colAA <- c("tomato", "#00b159", "royalblue")
 
+load(paste0(getwd(), "/02-Analysis/", OUTPUT,"/IMAGE_AA_FOR_ANALYSIS.RData"))
+source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
+path_plots <- paste0(getwd(), "/02-Analysis/", OUTPUT,"/plots")
 
 
 AXESTOREPRESENT = c(1,2)
@@ -16,7 +21,7 @@ PCAteleo <- runPCA(dataplot_noelasmo, traits)
 plot(PCAteleo$x[,1], PCAteleo$x[,2])
 plot(PCAteleo)
 res.pca <- PCAteleo
-dataacp_noelasmoPLOT <- dataacp_add_colorvector(dataphylo_noelasmo, kclusters=6, dataacp_noelasmo)
+dataacp_noelasmoPLOT <- dataacp_add_colorvector(dataphylo_noelasmo, kclusters=7, dataacp_noelasmo)
 listforplot <- preparedataforplot(numbPCA1=1, numbPCA2=2, dataacp=dataacp_noelasmoPLOT, AA=AAteleo, PCA=PCAteleo)
 rotation = listforplot[[1]]
 matrixAAinPCA = listforplot[[2]]
@@ -28,7 +33,7 @@ eigenval = listforplot[[4]]
 # preparing the data for the Archetypes identifications
 datatoadd <- matrixAAinPCA[,1:2]
 rownames(datatoadd)<- NULL
-labels <- c("Opportunistic", "Equilibrium", "Periodic")
+labels <- labelsAA
 datatoadd <- data_frame(x=datatoadd[,1], y=datatoadd[,2], z=labels)
 
 # prepare the data for the arrows indentification
@@ -44,7 +49,7 @@ plot <- fviz_pca_biplot(res.pca, axes = AXESTOREPRESENT,
                         col.var = "darkblue", repel= T)+
   scale_colour_manual(values = mycol, name="MSM cluster \ncentroid") + #*  # Adjust the color scale
   geom_point(data = datatoadd, aes(x = x, y = y), pch=c(22,23,21),                 
-             fill = c("tomato", "royalblue", "#00b159"), size = 6,
+             fill = colAA, size = 6,
              stroke = 1) +
   ggtitle(NULL) +
   theme(text = element_text(size = 12),

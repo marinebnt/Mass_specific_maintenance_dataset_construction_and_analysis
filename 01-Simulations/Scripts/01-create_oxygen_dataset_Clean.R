@@ -21,7 +21,7 @@ library(ggrepel)
 library(ggpubr)
 
 
-setwd("C:/Users/mbeneat/Documents/osmose/parameterizing_ev-osmose-med/repository_for_zenodo")
+# setwd("C:/Users/mbeneat/Documents/osmose/parameterizing_ev-osmose-med/repository_for_zenodo")
 path <- paste0(getwd(), "/01-Simulations/Scripts")
 pathoutput <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output")
 

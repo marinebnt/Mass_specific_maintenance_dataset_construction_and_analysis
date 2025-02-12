@@ -2,10 +2,14 @@
 # 14/10/24 
 # PCA for elasmobranchii species
 
-path_phylosem_out <- paste0(getwd(), "/02-Analysis/Outputs")
-path_plots <- paste0(getwd(), "/02-Analysis/Outputs/plots")
-load(paste0(path_phylosem_out, "/IMAGE_AA_FOR_ANALYSIS.RData")) # archetypal analysis and pca outputs
+
+OUTPUT = "Outputs_WITHOUTUNITCVLOGNOTKM"
+
+load(paste0(getwd(), "/02-Analysis/", OUTPUT,"/IMAGE_AA_FOR_ANALYSIS.RData"))
 source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
+path_phylosem_out <- paste0(getwd(), "/02-Analysis/", OUTPUT)
+path_plots <- paste0(getwd(), "/02-Analysis/", OUTPUT,"/plots")
+
 
 
 AXESTOREPRESENT = c(1,2)
@@ -15,7 +19,7 @@ PCAelasmo <- runPCA(dataplot_noteleo, traits)
 plot(PCAelasmo$x[,AXESTOREPRESENT[1]], PCAelasmo$x[,AXESTOREPRESENT[2]])
 plot(PCAelasmo)
 res.pca <- PCAelasmo
-dataacp_noteleoPLOT <- dataacp_add_colorvector(dataphylo_noteleo, kclusters=10, dataacp_noteleo)
+dataacp_noteleoPLOT <- dataacp_add_colorvector(dataphylo_noteleo, kclusters=7, dataacp_noteleo)
 listforplot <- preparedataforplot(numbPCA1=1, numbPCA2=2, dataacp=dataacp_noteleoPLOT, AA=AAelasmo, PCA=PCAelasmo)
 rotation = listforplot[[1]]
 matrixAAinPCA = listforplot[[2]]
