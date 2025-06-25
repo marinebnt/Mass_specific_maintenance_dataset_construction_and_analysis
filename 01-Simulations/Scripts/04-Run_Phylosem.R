@@ -4,11 +4,9 @@
 
 # Write paths and load dependencies
 
-setwd("C:/Users/mbeneat/Documents/osmose/parameterizing_ev-osmose-med/repository_for_zenodo")
-
-path <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem")
-pathoutput <- paste0(getwd(), "/01-Simulations/Outputs/phylosem_output")
-source(paste0(getwd(), "/01-Simulations/Scripts/00-Functions_for_phylosem.R"))
+path <- paste0("01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem")
+pathoutput <- paste0( "01-Simulations/Outputs/phylosem_output")
+source(paste0("01-Simulations/Scripts/00-Functions_for_phylosem.R"))
 
 
 # load dataset

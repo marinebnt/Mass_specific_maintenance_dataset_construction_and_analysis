@@ -8,22 +8,19 @@
 ##########################
 
 #Load packages
-library(rfishbase)
-library(dplyr)
-library(car)
-library(stringr)
-library(ape)
+library(doBy)
+library(car) 
 library(ggplot2)
-library(ggsignif)
-library(ggrepel)
-library(ggpubr)
+library(graphics)
+library(grDevices)
 library(lme4)
-library(optimx)
+library(dplyr)
+library(ggpubr)
+
 
 #####
-setwd("C:/Users/mbeneat/Documents/osmose/updated_parameters_osmose-med/Mass_specific_maintenance_dataset_building")
-path <- paste0(getwd(), "/01-Simulations/Scripts")
-pathoutput <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output")
+path <- paste0("01-Simulations/Scripts")
+pathoutput <- paste0("01-Simulations/Outputs/dataset_creation_output")
 
 ####
 oxdata <- read.csv(paste0(pathoutput, "/dataset_oxygen.csv"))
@@ -106,7 +103,7 @@ p.order  <- c(icol,(1:ncol(data_ox_fr))[-c(icol, as.numeric(char_col), torm)])
 m        <- colMeans(data_ox_fr[p.order])
 s        <- apply(data_ox_fr[p.order],2,sd)
 data_ox_fr[, p.order] <- sapply(data_ox_fr[, p.order], scale)
-library(doBy)
+
 c <- scaleBy(.~., data=data_ox_fr[,c("ox","temp", "ge")], scale=FALSE)
 c <- purrr::list_rbind(c)
 d=c
@@ -115,6 +112,8 @@ d=c
 # linear models with the scaled data
 lm_ox_S  <- lm(data=data_ox_fr, ox ~ ge+temp+temp:ge + 0)
 lmm_ox_S <- lmer(data=data_ox_fr, ox ~  temp + (temp|ge))
+
+# plots check 
 lattice::dotplot(ranef(lmm_ox_S))
 par(mfrow=c(2,2))
 lattice::qqmath(lmm_ox_S)
@@ -123,8 +122,10 @@ plot(lmm_ox_S,
      type=c("p","smooth"), col.line=1)
 plot(lmm_ox_S, rstudent(.) ~ hatvalues(.))
 plot(lmm_ox_S, type=c("p","smooth"), col.line=1)
+
+# linear models second version + plots
 lmm_ox_S_2 <- lmer(data=c, ox ~ temp+(temp|ge))
-lattice::dotplot(ranef(lmm_ox_S_2))
+lattice::dotplot(ranef(lmm_ox_S_2)) # this is not what we want
 par(mfrow=c(2,2))
 lattice::qqmath(lmm_ox_S_2)
 plot(lmm_ox_S_2,
@@ -132,15 +133,19 @@ plot(lmm_ox_S_2,
      type=c("p","smooth"), col.line=1)
 plot(lmm_ox_S_2, rstudent(.) ~ hatvalues(.))
 plot(lmm_ox_S_2, type=c("p","smooth"), col.line=1)
+
+# extract variables
 coefname_m <- colnames(coef(lmm_ox_S)$ge)
 b1S      <- coef(lm_ox_S)
 b1S_m    <- coef(lmm_ox_S)
 nb_ge <- length(table(data_ox_fr$ge))
 nb_ha <- 0
 
+
 ############################
 #PLOT Prediction
 ############################
+####### With raw dataset
 # training set
 dat_train <- data_ox_fr %>%
   group_by(ge) %>%
@@ -190,7 +195,9 @@ combined_dat %>%
        y = "log(Oxygen/Weight^0.75)",
        title = "Predict validation scale globally")
 boxplot(combined_dat$fit~combined_dat$group)
+
 ## Plot the time series of predictions and observed data
+########## With scaled dataset
 # training set
 dat_train <- c %>%
   group_by(ge) %>%
@@ -255,11 +262,18 @@ all.equal(b1,coef_R) # compare the outputs from coefficient of scaled and unscal
 #all.equal(b1S_m,coef_R_m) # same but won't work because lmm with unscaled data isn't running
 
 
+
+
 # reassamble the coefficients from lmm
 coef_R_m <- as.data.frame(coef_R_m)
 colnames(coef_R_m) <- colnames(b1S_m$ge)
 rownames(coef_R_m) <- rownames(b1S_m$ge)
 coef_R_m # check the values
+
+
+# save the outputs to produce the table for the paper
+save.image(file = "01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/LMER.RData")
+
 
 # plot(lmm_genOFF)
 plot(resid(lmm_ox_S)~fitted((lmm_ox_S)))
@@ -410,26 +424,18 @@ write.csv(datajoined, paste0(pathoutput, "/dataset_oxygen_completed.csv"))
 # plot c_m ~ c_mm and eps_m ~eps_mm
 par(mfrow=c(2,1))
 
-c_mm_na <- na.omit(c_mm)
-c_m_na <- na.omit(c_m)
-#plot(c_m_na~c_mm_na)
+c_mm_na <- c_mm[-which(is.na(c_mm))]
+c_m_na <- c_m[-which(is.na(c_m))]
+plot(c_m_na~c_mm_na)
 locm <- loess(c_m_na~c_mm_na, span=1, degree=1)
 lox <- seq(min(c_mm_na), max(c_mm_na), length.out=50)
 loy <- predict(locm, lox)
 lines(lox, loy, col="red")
 abline(a=0, b=1)
 
-c_mm_na <- na.omit(c_mm)
-c_m_na <- na.omit(c_m)
-plot(log(c_m_na)~log(c_mm_na))
-locm <- loess(log(c_m_na)~log(c_mm_na), span=1, degree=1)
-lox <- seq(min(log(c_mm_na)), max(log(c_mm_na)), length.out=50)
-loy <- predict(locm, lox)
-lines(lox, loy, col="red")
-abline(a=0, b=1)
 
-eps_mm_na <- na.omit(eps_mm)
-eps_m_na <- na.omit(eps_m)
+eps_mm_na <- c_mm[-which(is.na(eps_mm))]
+eps_m_na <- c_m[-which(is.na(eps_m))]
 plot(eps_m_na~eps_mm_na)
 loepsm <- loess(eps_m_na~eps_mm_na, span=1, degree=1)
 lox <- seq(min(eps_mm_na), max(eps_mm_na), length.out=50)
@@ -484,6 +490,7 @@ c_malaia   <- c(1.49E+11, 5034832.882, 540388517.7, 256579.0172, 5816.281889, 15
                 274469.8036, 2066760649, 1961447.834, 103677.1587, 1357998.53, 286079471.6, 1474805.094,
                 174241.9494, 31010952.85) 
 
+# alaia 's c_m value should be different because we did not convert to the correct unit
 dataframe_boxplot_alaia <- data.frame(c(rep("lm", length(na.omit(spetotm$c_m))), rep("lmm", length(na.omit(spetotmm$c_mm))), rep("alaia", length(eps_malaia))),
                                       c(log(na.omit(spetotm$c_m)), log(na.omit(spetotmm$c_mm)), log(c_malaia)),
                                       c(log(na.omit(spetotm$eps_m)), log(na.omit(spetotmm$eps_mm)), log(eps_malaia)))
@@ -571,7 +578,7 @@ ggplot(data=spetotmm) +
 ##############
 
 
-spetotmm$c_m   <- spetotmm$c_mm
+spetotmm$c_m   <- exp(spetotmm$c_mm) # *****
 spetotmm$eps_m <- spetotmm$eps_mm
 spetotmm       <- spetotmm[, -which(colnames( spetotmm) %in% c("c_mm", "eps_mm"))]
 write.csv(spetotmm, paste0(pathoutput, "/spetot_fishabse_c_m_eps_mLMnoHABTREF.csv"))

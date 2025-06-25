@@ -8,23 +8,19 @@
 #  INITIALIZATION
 ##############################################################################################
 library(rfishbase)
-library(dplyr)
-library(car)
-#library(FishLife)
-library(ape)
 library(stringr)
+library(dplyr)
 library(ggplot2)
+library(grDevices)
 library(ggpubr)
 
 #############
-# setwd("C:/Users/mbeneat/Documents/osmose/parameterizing_ev-osmose-med/tests/repository_for_zenodo")
-path <- paste0(getwd(), "/01-Simulations/Scripts")
-pathoutput <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output")
-pathinput <- paste0(getwd(), "/01-Simulations/Inputs")
+path <- paste0("01-Simulations/Scripts")
+pathoutput <- paste0("01-Simulations/Outputs/dataset_creation_output")
+pathinput <- paste0("01-Simulations/Inputs")
 #############
 spetot <- read.csv(paste0(pathoutput, "/spetot_fishabse_c_m_eps_mLMnoHABTREF.csv"))
 spetot <- spetot[,-which(colnames(spetot) %in% c("X.1", "X"))]
-
 
 
 #my species 
@@ -382,8 +378,8 @@ sum(duplicated(spemerged$SpecCode))
 #      CLEAN DATA
 ##############################################################################################
 #remove Loo and tmax measurement when Loo<Lm or tmax<tm
-dataset$Loo[which(dataset[, c("Loo")]<dataset[, c("Lm")])]           <- NA
-dataset$tmax[length(which(dataset[, c("tmax")]<dataset[, c("tm")]))] <- NA
+dataset$Loo[which(dataset[, c("Loo")]<dataset[, c("Lm")], arr.ind = T)]           <- NA
+dataset$tmax[which(dataset[, c("tmax")]<dataset[, c("tm")],)] <- NA
 #remove species that are not in the class Teleostean or Chondrychtian
 dataset <- dataset[which(dataset$Class %in% c("Elasmobranchii", "Teleostei")),]
 ##############################################################################################
@@ -435,7 +431,6 @@ dataset$TLDiet[which(dataset$TLDiet < 1.62)] <- NA # data wrong
 
 #######
 #### Exploration : see correlation between traits to see which trait to log or not 
-library(grDevices)
 reg <- function(x, y, ...) {
   points(x,y, ...)
   abline(lm(y~x)) 
@@ -463,13 +458,13 @@ dir.create(paste0(pathoutput, "/plot_03"), showWarnings = F)
 jpeg(file=paste0(pathoutput, "/plot_03/logornotlogplotHALREVISITED.jpeg"), width=1500, height=1000, res=100)
 pairs(datasetlog[, c("Loo", "Lm", "K", "tmax", "Woo", "M", "TLDiet", "fecundity", "tm", "c_m",
                      "Min_caudalpeduncle_depth", "Max_body_width", "Max_body_depth", "Lower_jaw_length", "Temperature")], 
-      col = adjustcolor(4, .4), lower.panel = panel.smooth, upper.panel =reg, 
+      col =  c(adjustcolor(4, .4), adjustcolor(3, .3))[as.factor(datasetlog$Class)], lower.panel = panel.smooth, upper.panel =reg, 
       diag.panel = panel.hist)
 dev.off()
 jpeg(file=paste0(pathoutput, "/plot_03/logornotlogplotnolog.jpeg"), width=1500, height=1000, res=100)
 pairs(dataset[, c("Loo", "Lm", "K", "tmax", "Woo", "M", "TLDiet", "fecundity", "tm", "c_m",
                   "Min_caudalpeduncle_depth", "Max_body_width", "Max_body_depth", "Lower_jaw_length", "Temperature")], 
-      col = adjustcolor(4, .4), lower.panel = panel.smooth, upper.panel =reg, 
+      col = c(adjustcolor(4, .4), adjustcolor(3, .3))[as.factor(dataset$Class)], lower.panel = panel.smooth, upper.panel =reg, 
       diag.panel = panel.hist)
 dev.off()
 datasetlog <- dataset
@@ -481,7 +476,7 @@ for (i in 1:dim(datasetlog)[2]){
 jpeg(file=paste0(pathoutput, "/plot_03/logornotlogplotTotlog.jpeg"), width=1500, height=1000, res=100)
 pairs(datasetlog[, c("Loo", "Lm", "K", "tmax", "Woo", "M", "TLDiet", "fecundity", "tm", "c_m",
                      "Min_caudalpeduncle_depth", "Max_body_width", "Max_body_depth", "Lower_jaw_length", "Temperature")], 
-      col = adjustcolor(4, .4), lower.panel = panel.smooth, upper.panel =reg, 
+      col = c(adjustcolor(4, .4), adjustcolor(3, .3))[as.factor(datasetlog$Class)], lower.panel = panel.smooth, upper.panel =reg, 
       diag.panel = panel.hist)
 dev.off()
 datalmfec <- na.omit(cbind(datasetlog$Lm, datasetlog$fecundity, datasetlog$Species))
@@ -492,7 +487,7 @@ text(datalmfec,labels=datalmfec[,3])
 #*Transform the data set (dataandox) to fit the package requirements : log neparian numeric data
 #########
 for (i in 1:dim(dataset)[2]){
-  if (!(colnames(dataset)[i] %in% c("SpecCode", "Temperature", "eps_m", "TLDiet", "K", "M"))){
+  if (!(colnames(dataset)[i] %in% c("SpecCode", "Temperature", "TLDiet"))){
     if(is.numeric(dataset[,i])){
       dataset[,i] <- log(dataset[,i])
     }
@@ -655,14 +650,15 @@ sum(is.na(dataset_GE$eps_m))
 ##############
 options("scipen")
 
-dir.create(paste0(pathoutput, "/dataset_for_phylosem/output_genus_stdmorpho"), showWarnings = F, recursive = T)
-dir.create(paste0(pathoutput, "/dataset_for_phylosem/output_tot_stdmorpho"), showWarnings = F, recursive = T)
+dir.create(paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_genus_stdmorpho"), showWarnings = F, recursive = T)
+dir.create(paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho"), showWarnings = F, recursive = T)
 
-write.csv(dataset_GE, paste0(pathoutput, "/dataset_for_phylosem/output_genus_stdmorpho/dataset_phylosem.csv"))
-write.csv(dataset_traits_GE, paste0(pathoutput, "/dataset_for_phylosem/output_genus_stdmorpho/dataset_traits_phylosem.csv"))
+write.csv(dataset_GE, file = paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_genus_stdmorpho/dataset_phylosem.csv"))
+write.csv(dataset_traits_GE, file = paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_genus_stdmorpho/dataset_traits_phylosem.csv"))
 
-write.csv(dataset_TOT, paste0(pathoutput, "/dataset_for_phylosem/output_tot_stdmorpho/dataset_phylosem.csv"))
-write.csv(dataset_traits_TOT, paste0(pathoutput, "/dataset_for_phylosem/output_tot_stdmorpho/dataset_traits_phylosem.csv"))
+write.csv(dataset_TOT, file = paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho/dataset_phylosem.csv"))
+write.csv(dataset_traits_TOT, file = paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho/dataset_traits_phylosem.csv"))
 
-save.image( paste0(pathoutput, "/dataset_for_phylosem/IMAGELOG.RData"))
+save.image( paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/IMAGELOG.RData"))
+dev.off()
 ##############################################################################################

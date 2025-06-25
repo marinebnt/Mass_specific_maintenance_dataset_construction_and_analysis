@@ -492,7 +492,7 @@ text(datalmfec,labels=datalmfec[,3])
 #*Transform the data set (dataandox) to fit the package requirements : log neparian numeric data
 #########
 for (i in 1:dim(dataset)[2]){
-  if (!(colnames(dataset)[i] %in% c("SpecCode", "Temperature", "eps_m", "TLDiet", "K", "M"))){
+  if (!(colnames(dataset)[i] %in% c("SpecCode", "Temperature", "eps_m", "TLDiet"))){
     if(is.numeric(dataset[,i])){
       dataset[,i] <- log(dataset[,i])
     }
@@ -655,14 +655,14 @@ sum(is.na(dataset_GE$eps_m))
 ##############
 options("scipen")
 
-dir.create(paste0(pathoutput, "/dataset_for_phylosem/output_genus_stdmorpho"), showWarnings = F, recursive = T)
-dir.create(paste0(pathoutput, "/dataset_for_phylosem/output_tot_stdmorpho"), showWarnings = F, recursive = T)
+dir.create(paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_genus_stdmorpho"), showWarnings = F, recursive = T)
+dir.create(paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho"), showWarnings = F, recursive = T)
 
-write.csv(dataset_GE, paste0(pathoutput, "/dataset_for_phylosem/output_genus_stdmorpho/dataset_phylosemLOG.csv"))
-write.csv(dataset_traits_GE, paste0(pathoutput, "/dataset_for_phylosem/output_genus_stdmorpho/dataset_traits_phylosemLOG.csv"))
+write.csv(dataset_GE, paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_genus_stdmorpho/dataset_phylosemLOG.csv"))
+write.csv(dataset_traits_GE, paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_genus_stdmorpho/dataset_traits_phylosemLOG.csv"))
 
-write.csv(dataset_TOT, paste0(pathoutput, "/dataset_for_phylosem/output_tot_stdmorpho/dataset_phylosemLOG.csv"))
-write.csv(dataset_traits_TOT, paste0(pathoutput, "/dataset_for_phylosem/output_tot_stdmorpho/dataset_traits_phylosemLOG.csv"))
+write.csv(dataset_TOT, paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho/dataset_phylosemLOG.csv"))
+write.csv(dataset_traits_TOT, paste0(pathoutput, "/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho/dataset_traits_phylosemLOG.csv"))
 
 save.image( paste0(pathoutput, "/dataset_for_phylosem/IMAGELOGK.RData"))
 ##############################################################################################

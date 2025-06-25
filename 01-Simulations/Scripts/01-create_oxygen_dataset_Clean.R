@@ -24,7 +24,7 @@ library(ggpubr)
 # setwd("C:/Users/mbeneat/Documents/osmose/parameterizing_ev-osmose-med/repository_for_zenodo")
 path <- paste0(getwd(), "/01-Simulations/Scripts")
 pathoutput <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output")
-
+pathoutputplot <- paste0("01-Simulations/Outputs/dataset_creation_output/plot_01")
 
 ##*************************
 ## TAXO DATA : organise + fill in ######
@@ -215,6 +215,10 @@ dataframe_boxplot <- data.frame(as.factor(Ref),Weight,
                                 Temperature, OxygenCons)
 colnames(dataframe_boxplot) <- c("Ref", "Weight", "Temp", "OxygenCons")
 
+dataplot <- data.frame(as.factor(oxdata$Ref), oxdata$DemersPelag, (oxdata$Weight*10^3)^(3/4),
+                       -1/(oxdata$Temperature), log(oxdata$OxygenCons), oxdata$Genus, log(oxdata$OxygenCons)-log((oxdata$Weight*10^3)^(3/4)))
+colnames(dataplot) <- c("Ref", "habitat", "Weight^beta", "-1/Temp", "log(OxygenCons)", "Genus", "log(OxCons/Weight)")
+
 
 ##********** Plot scripts if needed
 # ggplot(dataframe_boxplot, aes(x=Ref, y=log(Weight))) + 
@@ -253,25 +257,55 @@ if (length(vecnames)>0){
 
 ##*********************
 #remove the individuals that make the slope of the plot oxygen~weight or oxygen~temperature being negative according to a sampling effort or habitat
-genusNEG <- c("Anguilla", "Anoplogaster", "Artediellus", "Borostomias", "Callionymus", "Chromis", "Conger", "Coryphaena", "Cyprinus",
-              "Diaphus", "Fundulus", "Girella", "Hippocampus", "Hypanus", "Labeo", "Lagodon", "Lepomis", "Lutjanus", "Lycodes",
-              "Microstomus", "Notothenia", "Ophiodon", "Orthodon", "Perca", "Rutilus", "Salmo", "Salvelinus", "Sander", "Scophthalmus", 
-              "Scorpaena", "Scyliorhinus", "Solea", "Stomias", "Tarletonbeania", "Thunnus", "Torpedo", "Xiphophorus")
+# genusNEG <- c("Anguilla", "Anoplogaster", "Artediellus", "Borostomias", "Callionymus", "Chromis", "Conger", "Coryphaena", "Cyprinus",
+#               "Diaphus", "Fundulus", "Girella", "Hippocampus", "Hypanus", "Labeo", "Lagodon", "Lepomis", "Lutjanus", "Lycodes",
+#               "Microstomus", "Notothenia", "Ophiodon", "Orthodon", "Perca", "Rutilus", "Salmo", "Salvelinus", "Sander", "Scophthalmus", 
+#               "Scorpaena", "Scyliorhinus", "Solea", "Stomias", "Tarletonbeania", "Thunnus", "Torpedo", "Xiphophorus")
+tabsp <- table(dataplot$Genus)
+r=0
+sp=c()
+for (i in 1:length(tabsp)){
+  ID_sp <- which(dataplot$Genus == names(tabsp)[i])
+  if (length(ID_sp)<2){next}
+    pa <- ggplot(dataplot[ID_sp,], aes(`-1/Temp`, `log(OxCons/Weight)`, colour = habitat)) +
+    geom_point() +
+    geom_smooth(span = 0.8, method='lm')
+    pb <- ggplot(dataplot[ID_sp,], aes(`Weight^beta`, `log(OxygenCons)`, colour = habitat)) +
+    geom_point() +
+    geom_smooth(span = 0.8, method = 'lm')
+    r = r+1
+    sp = c(sp, names(tabsp)[i])
+    assign(x = paste0("plot", names(tabsp)[i]), value = ggarrange(pa, pb))
+}
+sort_sp <- sort(sp)
+pdf(file=paste0(pathoutputplot, "/genus_variables_check.pdf"))
+for (k in sort_sp){
+  plot <- get(paste0("plot", k))
+  print(annotate_figure(plot, top = text_grob(k, face = "bold", size = 14)))
+}
+dev.off()
 
+
+# genusNEG <- c("Artediellus", "Borostomias", "Callionymus", "Chromis", "Conger", "Coryphaena", "Cyprinus",
+#               "Diaphus", "Fundulus", "Girella", "Hippocampus", "Hypanus", "Labeo", "Lagodon", "Lepomis", "Lutjanus", "Lycodes",
+#               "Microstomus", "Notothenia", "Ophiodon", "Orthodon", "Perca", "Rutilus", "Salmo", "Salvelinus", "Sander", "Scophthalmus",
+#               "Scorpaena", "Scyliorhinus", "Solea", "Stomias", "Tarletonbeania", "Thunnus", "Torpedo", "Xiphophorus")
+genusNEG <- c("Anguilla", "Borostomias", "Conger", "Coryphaena", "Diplodus", "Echiichthys", "Girella", "Hypanus", "Lagodon",
+               "Lampanyctus", "Microstomus", "Myoxocephalus", "Notothenia", "Planiliza", "Scophthalmus",  "Scyliorhinus", "Stomias", "Syngnathus",
+               "Tautogolabrus", "Torpedo", "Zoarces")
 oxdata -> oxdatabis
 oxdatabis -> oxdata
 dimox <-c()
 for (i in seq_len(length(genusNEG))){   
   idgenusNEG <- which(oxdata$Genus == genusNEG[i])
   if (length(idgenusNEG)>0){
-    if (genusNEG[i] %in% c("Anoplogaster", "Artediellus", "Borostomias", "Callionymus", "Chromis", "Conger", "Coryphaena", "Cyprinus",
-              "Diaphus", "Girella", "Hippocampus", "Hypanus", "Labeo", "Lagodon", "Lepomis", "Lutjanus", "Lycodes",
-              "Microstomus", "Ophiodon", "Orthodon", "Perca", "Rutilus", "Salmo", "Sander", "Scophthalmus", 
-              "Scorpaena", "Solea", "Stomias", "Tarletonbeania", "Thunnus", "Torpedo", "Xiphophorus")){
+    if (genusNEG[i] %in% c("Borostomias", "Conger", "Coryphaena", "Diplodus", "Echiichthys", "Girella", "Hypanus", "Lagodon",
+                           "Lampanyctus", "Microstomus", "Myoxocephalus", "Planiliza", "Scophthalmus",  "Stomias", "Syngnathus",
+                           "Tautogolabrus", "Zoarces")){
     oxdata <- oxdata[-idgenusNEG, ]
     }
-    if (genusNEG[i] %in% c("Anguilla", "Notothenia", "Salmo", "Scyliorhinus")){
-      if (genusNEG[i] %in% c("Anguilla", "Salmo", "Scyliorhinus")){
+    if (genusNEG[i] %in% c("Anguilla", "Notothenia", "Scyliorhinus", "Torpedo")){
+      if (genusNEG[i] %in% c("Anguilla", "Scyliorhinus")){
         idbenthopelag <- which(oxdata$DemersPelag == c("benthopelagic"))
         idRM          <- idgenusNEG[idgenusNEG %in% idbenthopelag]
         oxdata        <- oxdata[-idRM, ]
@@ -279,20 +313,6 @@ for (i in seq_len(length(genusNEG))){
       else {
         iddemer <- which(oxdata$DemersPelag == c("demersal")) 
         idRM          <- idgenusNEG[idgenusNEG %in% iddemer]
-        oxdata        <- oxdata[-idRM, ]
-      }
-    }
-    if (genusNEG[i] %in% c("Fundulus", "Salvelinus", "Scyliorhinus")){
-      if (genusNEG[i] %in% c("Salvelinus", "Fundulus")){
-        idgenusNEG <- which(oxdata$Genus == genusNEG[i])
-        id2120     <- which(oxdata$OxygenRefNo == c(2120))
-        idRM          <- idgenusNEG[idgenusNEG %in% id2120]
-        oxdata        <- oxdata[-idRM, ]
-      }
-      if (genusNEG[i] %in% c("Fundulus", "Scyliorhinus")){
-        idgenusNEG <- which(oxdata$Genus == genusNEG[i])
-        id2203 <- which(oxdata$OxygenRefNo == c(2203))
-        idRM          <- idgenusNEG[idgenusNEG %in% id2203]
         oxdata        <- oxdata[-idRM, ]
       }
     }
