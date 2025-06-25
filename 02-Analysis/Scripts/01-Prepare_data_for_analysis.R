@@ -7,37 +7,31 @@
 #* 
 
 
-############### ARE K AND M in LOG ????
-K_M_LOG = T
+
+
 
 
 #*****
 ####Preparing dataset####
 #******
-
-OUTPUT = "Outputs_1000"
-OUTPUT_phylo = "Outputs/phylosem_1000"
-OUTPUT="Outputs_WITHOUTUNITCVLOGNOTKM"
-OUTPUT_phylo = "Outputs/phylosem_output_WITHUNITCONVERSIONLOGnotKM"
-
-source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
-
-
+K_M_LOG = T  # **** ############### ARE K AND M in LOG ????
 ############################## Prepare dataset ##########################
 
 path_phylosem_out <- paste0(getwd(), "/01-Simulations/", OUTPUT_phylo)
-path_output_genus <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem/output_tot_stdmorpho")
+path_output_genus <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho")
 path_analysis_out <- paste0(getwd(), "/02-Analysis/", OUTPUT)
+dir.create(path_analysis_out)
 
-dataphylo <- read.csv(paste0(path_phylosem_out, "/output_TLstdmecapsemFINALtot.csv"))
-if (K_M_LOG){
-  datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosemLOG.csv"))  
+
+dataphylo <- read.csv(paste0(path_phylosem_out, "/output_SEMpsemFINALtot.csv"))
+# if (K_M_LOG){
+#   datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosemLOG.csv"))  
   IS_LOG_M = T
-}
-if (!K_M_LOG) {
+# }
+# if (!K_M_LOG) {
   datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosem.csv")) 
-  IS_LOG_M = F
-}
+#   IS_LOG_M = F
+# }
 
 datagenus$na <- is.na(datagenus$c_m)
 
@@ -104,7 +98,7 @@ dataacp_noteleo_pela   <- data.frame(dataphylo_noteleo_pela)
 
 ############################## RUN Archetypal analysis ##########################
 
-traits = c("Age.mat", "Age.max", "Mortality", "K", "Trophic.lvl", "Habitat")
+
 veccol_teleo <- c("royalblue","darkgreen","tomato")
 veccol_elasmo <- c("orange", "purple4", "pink")
 veccol_tot <- c("royalblue", "tomato", "darkgreen")
@@ -119,13 +113,10 @@ kmax=3
 
 
 
+
 AAteleo <- runAA(dataplot_noelasmo, traits, kmax)
 AAelasmo <- runAA(dataplot_noteleo, traits, kmax)
 AAtot <- runAA(dataplot, traits, kmax)
-
-
-
-
 
 
 
@@ -138,3 +129,4 @@ save(AAteleo, AAelasmo, AAtot, dataphylo, dataacp, dataplot, datagenus,
              dataplot_noelasmo, dataacp_noelasmo, dataphylo_noelasmo,
              dataplot_noteleo, dataacp_noteleo, dataphylo_noteleo, 
           file=paste0(path_analysis_out, "/IMAGE_AA_CONSTRUCTED.RData"))
+

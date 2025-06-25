@@ -2,6 +2,8 @@
 # 14/10/24 
 # functions used by the annex scripts
 
+library(ggnewscale)
+library(stringr)
 library(knitr)
 library(kableExtra)
 library(archetypes)
@@ -34,6 +36,7 @@ library(plotROC)
 library(pROC)
 library(rstatix)
 library(ggpubr)
+library(outliers)
 
 suppressWarnings(RNGversion("3.5.0"))
 set.seed(1986)
@@ -44,11 +47,10 @@ mycol = function(x,alpha){
 
 
 addhabitatcolumn <- function(dataphylo){
-  hhabtot <- apply(dataphylo[, c("habitatpelagic", "habitatdemersal", "habitatbenthopelagic")], 1, which.max)
+  hhabtot <- apply(dataphylo[, c("habitatpelagic", "habitatbenthopelagic", "habitatdemersal")], 1, which.max)
   dataphylo$hhabtot <- hhabtot
   return(dataphylo)
 }
-
 
 ratioTOtrait <- function(ratio, operator, IS_OPERATOR_Loo, IS_LOG_M){
   
@@ -99,7 +101,7 @@ plotggtern <- function(dataphylo, AA, vecAA_eq, bins){
     
     # Use scale_fill_gradientn() for custom color gradient
     scale_fill_gradientn(colors = c("darkorchid4", "#4575b4", "#91bfdb", "#fee090", "#fc8d59","#d73027"), 
-                         name = "Standardized \nmass-specific \nmaintenance")
+                         name = "Standardized \nRMR0")
   return(plot)
 }
 
@@ -326,12 +328,12 @@ checkphylosemdata <- function(fileID, semID, trait, name, sample, maxCV){
   
   # change units of the invariants traits (Beverton and Holt)
   if(traittotest == "tm"){
-    rest$tm <- log(exp(rest$tm)/rest$M)
-    data$tm <- log(exp(data$tm)/data$M)
+    rest$tm <- rest$tm - rest$M
+    data$tm <- data$tm - data$M
   }
   if(traittotest == "Lm"){
-    rest$Lm <- rest$Lm+rest$Loo
-    data$Lm <- data$Lm+data$Loo
+    rest$Lm <- rest$Lm + rest$Loo
+    data$Lm <- data$Lm + data$Loo
   }
   
   #identify data to compare
@@ -381,11 +383,11 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       expected <- c()
       errorpercent    <- c()
       
-      if (checkmate::checkFileExists(paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"), access = "r")==TRUE){
-        dataseterrorE <- read.csv2( paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))
-      }
+      # if (checkmate::checkFileExists(paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"), access = "r")==TRUE){
+      #   dataseterrorE <- read.csv2( paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))
+      # }
 
-      else{
+      # else{
         for (i in 1:nbCV){
           cat("\n---------> CV", i)
           toterror <- checkphylosemdata(fileID=i, semID=sem, trait=j, name=name, sample=sample[[k]], maxCV=maxCV[[k]])
@@ -398,9 +400,25 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
         # http://r-statistics.co/Outlier-Treatment-With-R.html
         # identifying outliers of the dataset to mark them clearly on the plots
         dataframe_outliers <- data.frame(infered, expected)
-        mod <- lm(expected ~ infered, data=dataframe_outliers)
+        mod <- lm(infered ~ expected, data=dataframe_outliers)
         cooksd <- cooks.distance(mod)
-        Booleand_outliers = as.numeric(cooksd>(4*mean(cooksd, na.rm=T)))
+        Booleand_outliers = as.numeric(cooksd>(4/length(infered)))#*mean(cooksd, na.rm=T)))
+        
+        # is the slope of the linear model significantly different from 1 ? 
+        slope <- coef(mod)[2]  # the estimate of the slope
+        se <- summary(mod)$coefficients[2, 2]  # standard error of the slope
+        t_value <- (slope - 1) / se
+        df <- df.residual(mod)
+        p_value <- 2 * pt(-abs(t_value), df)
+        
+        # https://www.mathworks.com/help/stats/outlier-detection-using-quantile-regression.html
+        # dataframe_outliers <- data.frame(infered, expected, infered-expected)
+        # Q1 <-quantile(dataframe_outliers[,3])[2]
+        # Q3 <-quantile(dataframe_outliers[,3])[4]
+        # IQ <- abs(Q3)+abs(Q1)
+        # Booleand_outliers = ifelse((dataframe_outliers[,3]>c(Q3+IQ*1.5)), 1, 0)
+        # Booleand_outliers[which((dataframe_outliers[,3]<c(IQ*1.5-Q1)))] <- 1
+        
         #
         missing_cooksd <- c(0)
         
@@ -419,7 +437,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
         if (sem==1){  write.csv2(dataseterrorE, paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))}
         if (sem==2){  write.csv2(dataseterrorM, paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))}
         
-      }
+      # }
       
       # Estimate percentage variance explained
       dataseterrorE <- na.omit(dataseterrorE)
@@ -438,7 +456,8 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
           theme_classic()+
           theme(axis.text.y = element_text(size = 9),
                 axis.text.x = element_text(size = 9),
-                plot.title = element_text(size=12))
+                plot.title = element_text(size=12))+ 
+          labs(y = "Predicted", x = "Observed")
       }
       if (trait == "c_m"){ 
         plt <- ggplot(dataseterrorE, aes(x = `infered`, y = `expected`)) +
@@ -453,11 +472,13 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
             plot.title = element_text(size = 12),
             axis.text.y = element_text(size = 12),
             axis.text.x = element_text(size = 12)) + 
-          ggtitle(paste0(names_var_i, paste0("\nPVE=", label_percent()(PVEe)))) +
+          ggtitle(paste0(names_var_i, paste0("\nPVE=", label_percent()(PVEe), "\nSlope=", slope))) +
           scale_color_identity(name = "Model fit",
                                breaks = c("red", "blue"),
                                labels = c("x=y", "Loess"),
-                               guide = "legend")
+                               guide = "legend")+
+          labs(y = "Predicted", x = "Observed")+ 
+          theme(legend.position = "none")
       }
       if(!(sum(dataseterrorE$expected %in% c(1,0,NA))==length(dataseterrorE$expected)) && !(trait == "c_m")) {
         dataseterrorE$LineType <- factor("LOESS")
@@ -475,13 +496,13 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
                                breaks = c("red", "blue"),
                                labels = c("x=y", "Loess"),
                                guide = "legend") + 
-          expand_limits(x = 0, y = 0)
+          expand_limits(x = 0, y = 0)+ 
+          labs(y = "Predicted", x = "Observed")
       }
       grDevices::pdf(file=paste0(pathoutput_CV,  "/plot_CrossValidation/", modelname[sem], name, j, "plotCV.pdf"))
       print(plt)
       dev.off()
       
-      plt <- plt + rremove("xlab") + rremove("ylab")
       myplotlist[[plotid]] <- plt
       
       grDevices::pdf(file=paste0(path_CV,  "/boxplot/", modelname[sem], name, j, "boxplotCV.pdf"))
