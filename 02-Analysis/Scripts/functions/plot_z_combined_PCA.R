@@ -47,7 +47,8 @@ legend$grobs[[2]] <- legend$grobs[[3]]
 plotall <- ggarrange(
   tot_plot, teleo_plot,
   legend, elasmo_plot,
-  ncol = 2, nrow = 2
+  ncol = 2, nrow = 2,
+  labels = c("A", "B", "", "C")
 )
 
 ggsave(plotall, file = paste0(path_plots, "/PCA_combined_time.pdf"), width=13, height=9.5)

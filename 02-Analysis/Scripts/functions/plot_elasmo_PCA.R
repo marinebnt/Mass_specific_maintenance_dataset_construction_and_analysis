@@ -9,26 +9,34 @@ labelAA <- c()
 pchvec <- c()
 iopp <- which.max(as.data.frame(AAelasmo$archetypes)$K) 
 colAA[iopp] = "tomato"
-labelAA[iopp] = "Opportunistic"
+labelAA[iopp] = "Fast"
 pchvec[iopp] = c(23)
 ieq <- which.min(as.data.frame(AAelasmo$archetypes)$K) 
 colAA[ieq] = "royalblue"
-labelAA[ieq] = "Equilibrium"
+labelAA[ieq] = "Slow"
 pchvec[ieq] = c(22)
 iper <- c(1:3)[-c(ieq, iopp)]
 colAA[iper] = "darkgreen"
-labelAA[iper] ="Periodic"
+labelAA[iper] ="Intermediate"
 pchvec[iper] = c(21)
 
-AXESTOREPRESENT = c(1,2)
+AXESTOREPRESENT = c(c(-1),2)
 dataacp_noteleoPLOT <- NULL
 # creating the PCA and the data frames associated
 PCAelasmo <- runPCA(dataplot_noteleo, traits)
-plot(PCAelasmo$x[,AXESTOREPRESENT[1]], PCAelasmo$x[,AXESTOREPRESENT[2]])
+
+# if the axes to represent are specific (ex : change an axis orientation), it will be adjusted
+PCAelasmo$rotation[,abs(AXESTOREPRESENT[1])] <- sign(AXESTOREPRESENT[1])*PCAelasmo$rotation[,abs(AXESTOREPRESENT[1])]
+PCAelasmo$rotation[,abs(AXESTOREPRESENT[2])] <- sign(AXESTOREPRESENT[2])*PCAelasmo$rotation[,abs(AXESTOREPRESENT[2])]
+PCAelasmo$x[,abs(AXESTOREPRESENT[1])] <- sign(AXESTOREPRESENT[1])*PCAelasmo$x[,abs(AXESTOREPRESENT[1])]
+PCAelasmo$x[,abs(AXESTOREPRESENT[2])] <- sign(AXESTOREPRESENT[2])*PCAelasmo$x[,abs(AXESTOREPRESENT[2])]
+
+plot(PCAelasmo$x[,abs(AXESTOREPRESENT[1])], PCAelasmo$x[,abs(AXESTOREPRESENT[2])])
 plot(PCAelasmo)
 res.pca <- PCAelasmo
-dataacp_noteleoPLOT <- dataacp_add_colorvector(dataphylo_noteleo, kclusters=7, dataacp_noteleo)
-listforplot <- preparedataforplot(numbPCA1=1, numbPCA2=2, dataacp=dataacp_noteleoPLOT, AA=AAelasmo, PCA=PCAelasmo)
+dataacp_noteleoPLOT <- dataacp_add_colorvector(dataphylo = dataphylo_noteleo, kclusters=7, dataacp = dataacp_noteleo)
+listforplot <- preparedataforplot(numbPCA1=abs(AXESTOREPRESENT[1]), numbPCA2=abs(AXESTOREPRESENT[1]), 
+                                  dataacp=dataacp_noteleoPLOT, AA=AAelasmo, PCA=PCAelasmo)
 rotation = listforplot[[1]]
 matrixAAinPCA = listforplot[[2]]
 dataacpPLOT = listforplot[[3]]
@@ -37,13 +45,14 @@ eigenval = listforplot[[4]]
 
 
 # preparing the data for the Archetypes identifications
-datatoadd <- matrixAAinPCA[,AXESTOREPRESENT]
+datatoadd <- matrixAAinPCA[,abs(AXESTOREPRESENT)]
 rownames(datatoadd)<- NULL
 labels <- labelAA
 datatoadd <- data_frame(x=datatoadd[,1], y=datatoadd[,2], z=labels, pchvec=pchvec)
 datatoadd$Archetypes <- labelAA
 datatoadd$colAA <- colAA
 order_table <- order(datatoadd$Archetypes)
+order_table <- c(2,3,1)
 datatoadd <- datatoadd[order_table, ]
 # prepare the data for the arrows indentification
 rownames(res.pca$rotation) <- traits
@@ -54,7 +63,7 @@ rownames(res.pca$rotation) <- traits
 # col_temp[which(AAelasmo$alphas[,2]>0.7)] <- "red"
   
 mycol =  c("darkorchid4", "cyan3", "#4575b4", "#91bfdb", "#fee090", "#fc8d59","#d73027") 
-plot <- fviz_pca_biplot(res.pca, axes = AXESTOREPRESENT,
+plot <- fviz_pca_biplot(res.pca, axes = abs(AXESTOREPRESENT),
                         label = c("none"),  
                         col.ind= as.factor(round(dataacpPLOT$colACP, 2)), #col_temp, #
                         arrowsize = 1.5, pointshape=19,labelsize = 5,

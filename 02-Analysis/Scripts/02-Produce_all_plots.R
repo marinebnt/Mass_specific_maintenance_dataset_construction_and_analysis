@@ -3,7 +3,7 @@
 
 
 # loop over all phylosem outputs (tested different SEMs)
-paths_dir <-  paste0("01-Simulations/Outputs/phylosem")
+paths_dir <-  paste0("01-Dataset_construction/Outputs/phylosem")
 list_dir <- list.dirs(paths_dir, recursive = F, full.names = F)
 
 for (dir in list_dir[6]){
@@ -44,19 +44,19 @@ for (dir in list_dir[6]){
   
   
   # load R functions producing the plots
-  path_func <- "C:/Users/mbeneat/Documents/osmose/updated_parameters_osmose-med/Mass_specific_maintenance_dataset_building/02-Analysis/Scripts/functions"
+  path_func <- "02-Analysis/Scripts/functions/"
   functions <- list.files(path_func)
-  load(paste0("01-Simulations/Outputs/phylosem/", model, "/imageworkspaceEND.RData")) #data needed for cross validation
+  load(paste0("01-Dataset_construction/Outputs/phylosem/", model, "/imageworkspaceEND.RData")) #data needed for cross validation
   
   
   ######## What input and output folder ? 
   # traits = c("Age.mat", "Age.max", "Mortality", "K", "Trophic.lvl", "Habitat")
-  traits = c("Age.mat", "Age.max", "Mortality", "K")
-  OUTPUT = paste0("Outputs_time/", model)
+  traits = c("Age.mat", "Age.max", "Mortality", "K") # time related traits
+  OUTPUT = paste0("Outputs_time/", model) # time-related outputs
   OUTPUT_phylo = paste0("Outputs/phylosem/", model)
   path_phylosem_out <- paste0(getwd(), "/02-Analysis/", OUTPUT)
   path_plots <- paste0(getwd(), "/02-Analysis/", OUTPUT,"/plots")
-  path_CV <- paste0(getwd(), "/01-Simulations/", OUTPUT_phylo)
+  path_CV <- paste0(getwd(), "/01-Dataset_construction/", OUTPUT_phylo)
   pathoutput_CV <- paste0(getwd(), "/02-Analysis/", OUTPUT,"/plots")
   source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
   ########
@@ -70,17 +70,21 @@ for (dir in list_dir[6]){
     source("02-Analysis/Scripts/01-Prepare_data_for_analysis.R")
   }
   else{
-    cat("\nUsing previously produced Archetypal outputs.\n")
+    cat("\nUsing previously produced Archetypal analysis outputs.\n")
   }
   
   # load inputs 
   load(paste0(getwd(), "/02-Analysis/", OUTPUT,"/IMAGE_AA_FOR_ANALYSIS.RData"))
   source(paste0(getwd(), "/02-Analysis/Scripts/00-Functions_for_analysis.R"))
   
+  # correction, because loaded old names
+  path_output_genus <- stringr::str_replace(path_output_genus, "01-Simulations", replacement = "01-Dataset_construction")
+  path_phylosem_out <- stringr::str_replace(path_phylosem_out, "01-Simulations", replacement = "01-Dataset_construction")
+  
   # loop the plots
-  for (func in functions[3]){
+  for (func in functions){
     if (func == c("plot_AA_elbow_criterion.R")){next} # this is really long, run only if needed
-    path_CV <- paste0(getwd(), "/01-Simulations/", OUTPUT_phylo)
+    path_CV <- paste0(getwd(), "/01-Dataset_construction/", OUTPUT_phylo)
     if (model != c("TLstdmeca") && func == c("plot_cross_validations.R")){
       cat("=>", func, "\n")
       source(paste0(path_func, "/", func), echo = FALSE, print.eval = FALSE, verbose = FALSE)

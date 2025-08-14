@@ -17,15 +17,15 @@ labelAA <- c()
 pchvec <- c()
 iopp <- which.max(as.data.frame(AAtot$archetypes)$K) 
 colAA[iopp] = "tomato"
-labelAA[iopp] = "Opportunistic"
+labelAA[iopp] = "Fast"
 pchvec[iopp] = c(23)
 ieq <- which.min(as.data.frame(AAtot$archetypes)$K) 
 colAA[ieq] = "royalblue"
-labelAA[ieq] = "Equilibrium"
+labelAA[ieq] = "Slow"
 pchvec[ieq] = c(22)
 iper <- c(1:3)[-c(ieq, iopp)]
 colAA[iper] = "darkgreen"
-labelAA[iper] ="Periodic"
+labelAA[iper] ="Intermediate"
 pchvec[iper] = c(21)
 
 i_elasmo = 30

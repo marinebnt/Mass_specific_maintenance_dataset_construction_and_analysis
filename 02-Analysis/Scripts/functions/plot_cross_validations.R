@@ -90,7 +90,10 @@ print(final)
 dev.off()
 
 
-
+# CV of c_m alone
+p_c_m <- plot_checkphylosemdata(semID, trait="c_m", name=nameCV[1],
+                                sample=list(samplec_mc_m$sample),
+                                maxCV=list(samplec_mc_m$maxCV), names_var="log(RMR0) ")
 
 
 

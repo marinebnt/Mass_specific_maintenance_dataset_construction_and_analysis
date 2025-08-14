@@ -23,3 +23,5 @@ TestResults.xml
 *.RData
 */*RData
 .Rproj.user
+*.Rproj.user
+.Rprojet.user/*

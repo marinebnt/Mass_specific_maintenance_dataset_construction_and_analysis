@@ -13,7 +13,7 @@
 pathoutput <- paste0("02-Analysis/Outputs/compareSEM")
 dir.create(pathoutput)
 
-source(paste0("01-Simulations/Scripts/00-Functions_for_phylosem.R"))
+source(paste0("01-Dataset_construction/Scripts/00-Functions_for_phylosem.R"))
 # library(TMBhelper)
 library(phylosem)
 library(dplyr)
@@ -53,9 +53,9 @@ osmosespnames <- c("Alosa alosa",                "Alosa fallax",                
                    "Ost euphausiids")
 
 
-dataset        <- read.csv("01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho/dataset_phylosem.csv")
+dataset        <- read.csv("01-Dataset_construction/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho/dataset_phylosem.csv")
 rownames(dataset) <- dataset$X
-dataset_traits <-  read.csv("01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho/dataset_traits_phylosem.csv")
+dataset_traits <-  read.csv("01-Dataset_construction/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho/dataset_traits_phylosem.csv")
 rownames(dataset_traits) <- dataset_traits$X
 
 

@@ -108,7 +108,7 @@ plotggtern <- function(dataphylo, AA, vecAA_eq, bins){
 
 
 
-dataacp_add_colorvector <- function(dataphylo, kclusters, dataacp){
+dataacp_add_colorvector <- function(dataphylo, kclusters, dataacp, plot_binary=FALSE){
   
   # clusters with k-means
   x <- dataphylo$c_m
@@ -116,6 +116,34 @@ dataacp_add_colorvector <- function(dataphylo, kclusters, dataacp){
   k <- max(result$cluster)
   centers <- result$centers
   cluster_centroid <- centers[result$cluster]
+  scree_plot = list()
+  
+  if(plot_binary==TRUE){
+    n_clusters <- 10
+    wss <- numeric(n_clusters)
+    set.seed(123)
+    # Look over 1 to n possible clusters
+    for (i in 1:n_clusters) {
+      # Fit the model: km.out
+      km.out <- kmeans(x, centers = i, nstart = 20)
+      # Save the within cluster sum of squares
+      wss[i] <- km.out$tot.withinss
+    }
+    # Produce a scree plot
+    wss_df <- tibble(clusters = 1:n_clusters, wss = wss)
+    scree_plot <- ggplot(wss_df, aes(x = clusters, y = wss, group = 1)) +
+      geom_point(size = 4)+
+      geom_line() +
+      scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +
+      xlab('Number of clusters')
+    scree_plot
+    # scree_plot +
+    #   geom_hline(
+    #     yintercept = wss, 
+    #     linetype = 'dashed', 
+    #     col = c(rep('#000000',6),'#FF0000', rep('#000000', 3))
+    #   )
+  }
   
   # extract clusters to use as color vector
   colACP <- cluster_centroid
@@ -147,7 +175,7 @@ dataacp_add_colorvector <- function(dataphylo, kclusters, dataacp){
     dataacp$colFAM[dataphylo$Family==famOPP] <- "opp"
     dataacp$colFAM[dataphylo$Family==famPER] <- "per"
   } 
-  return(list(dataacp, result$centers))
+  return(list(dataacp, result$centers, scree_plot))
 }
 
 
@@ -402,7 +430,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
         dataframe_outliers <- data.frame(infered, expected)
         mod <- lm(infered ~ expected, data=dataframe_outliers)
         cooksd <- cooks.distance(mod)
-        Booleand_outliers = as.numeric(cooksd>(4/length(infered)))#*mean(cooksd, na.rm=T)))
+        Booleand_outliers = as.numeric(cooksd>(4/length(infered)))#as.numeric(cooksd>(4*mean(cooksd, na.rm=T)))#
         
         # is the slope of the linear model significantly different from 1 ? 
         slope <- coef(mod)[2]  # the estimate of the slope
@@ -430,12 +458,17 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
           errorpercent<-errorpercent[-missing_cooksd]
         }
         
+        
         model <- modelname[sem]
         if (sem==1){ dataseterrorE <- data.frame(label, infered, expected, errorpercent, Booleand_outliers)}
         if (sem==2){ dataseterrorM <- data.frame(label, infered, expected, errorpercent, Booleand_outliers)
         dataseterrorE <- dataseterrorM}
-        if (sem==1){  write.csv2(dataseterrorE, paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))}
-        if (sem==2){  write.csv2(dataseterrorM, paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))}
+        dataseterrorE$ID <- dataseterrorE$Booleand_outliers 
+        dataseterrorE$lab <- dataseterrorE$Booleand_outliers 
+        dataseterrorE$ID[which(dataseterrorE$Booleand_outliers ==1)] <- 1:length(which(dataseterrorE$Booleand_outliers ==1))
+        dataseterrorE$lab[which(dataseterrorE$Booleand_outliers ==1)] <- dataseterrorE$label[which(dataseterrorE$Booleand_outliers ==1)]
+        if (sem==1){  write.csv(dataseterrorE, paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))}
+        if (sem==2){  write.csv(dataseterrorM, paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))}
         
       # }
       
@@ -465,7 +498,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
           geom_abline(slope = 1, intercept = 0, aes(color = "red"), 
                       color = "red", linetype = "dashed", lwd = 1.5) +
           geom_smooth(aes(color = "blue")) +
-          geom_text_repel(aes(label = ifelse(dataseterrorE$Booleand_outliers, label, "")),
+          geom_text_repel(data = dataseterrorE, aes(label = ifelse(Booleand_outliers, ID, "")),
                           size = 3.5) +
           theme_classic() +
           theme(

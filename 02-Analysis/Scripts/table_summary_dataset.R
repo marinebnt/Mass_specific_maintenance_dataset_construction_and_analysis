@@ -5,7 +5,7 @@
 
 # Convert summary to a dataframe (just an example if it's stored)
 source(paste0("02-Analysis/Scripts/00-Functions_for_analysis.R"))
-path_output_genus <- paste0("01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho")
+path_output_genus <- paste0("01-Dataset_construction/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho")
 datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosem.csv"))
 datagenus_t <- read.csv(paste0(path_output_genus, "/dataset_traits_phylosem.csv"))
 

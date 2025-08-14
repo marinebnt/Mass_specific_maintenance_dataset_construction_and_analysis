@@ -171,6 +171,6 @@ ggsave(plotteleo, file = paste0(path_plots, "/barplot_teleo.pdf"), width=5.63, h
 
 
 # save combined barplots 
-combined <- ggarrange(plottot, plotteleo, plot, ncol = 1, nrow=3, common.legend = T)
+combined <- ggarrange(plottot, plotteleo, plot, ncol = 1, nrow=3, common.legend = T, labels = c("A", "B", "C"))
 ggsave(combined, file=paste0(path_plots, "/barplot_combined_time.pdf"), width=7 , height=12)
 

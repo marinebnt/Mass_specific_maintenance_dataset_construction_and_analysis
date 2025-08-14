@@ -11,15 +11,15 @@ labelAA <- c()
 pchvec <- c()
 iopp <- which.max(as.data.frame(AAteleo$archetypes)$K) 
 colAA[iopp] = "tomato"
-labelAA[iopp] = "Opportunistic"
+labelAA[iopp] = "Fast"
 pchvec[iopp] = c(23)
 ieq <- which.min(as.data.frame(AAteleo$archetypes)$K) 
 colAA[ieq] = "royalblue"
-labelAA[ieq] = "Equilibrium"
+labelAA[ieq] = "Slow"
 pchvec[ieq] = c(22)
 iper <- c(1:3)[-c(ieq, iopp)]
 colAA[iper] = "darkgreen"
-labelAA[iper] ="Periodic"
+labelAA[iper] ="Intermediate"
 pchvec[iper] = c(21)
 
 
@@ -30,7 +30,7 @@ PCAteleo <- runPCA(dataplot_noelasmo, traits)
 plot(PCAteleo$x[,1], PCAteleo$x[,2])
 plot(PCAteleo)
 res.pca <- PCAteleo
-dataacp_noelasmoPLOT <- dataacp_add_colorvector(dataphylo_noelasmo, kclusters=7, dataacp_noelasmo)
+dataacp_noelasmoPLOT <- dataacp_add_colorvector(dataphylo = dataphylo_noelasmo, kclusters=7, dataacp = dataacp_noelasmo)
 listforplot <- preparedataforplot(numbPCA1=1, numbPCA2=2, dataacp=dataacp_noelasmoPLOT, AA=AAteleo, PCA=PCAteleo)
 rotation = listforplot[[1]]
 matrixAAinPCA = listforplot[[2]]
@@ -47,6 +47,7 @@ datatoadd <- data_frame(x=datatoadd[,1], y=datatoadd[,2], z=labels, pchvec=pchve
 datatoadd$Archetypes <- labelAA
 datatoadd$colAA <- colAA
 order_table <- order(datatoadd$Archetypes)
+order_table <- c(2,3,1)
 datatoadd <- datatoadd[order_table, ]
 
 # prepare the data for the arrows indentification

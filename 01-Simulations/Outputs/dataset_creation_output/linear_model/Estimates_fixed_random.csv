@@ -1,8 +1,0 @@
-,Estimate,SD,p-value
-Fixed effect,,,
-Intercept,0.069537209,0.107839033,0.644824111
-Slope,0.674055461,0.061236404,11.00743054
-Random effect,,,
-Intercept,,0.697321938,
-Slope,,0.311980589,
-Residuals,,0.586643029,
