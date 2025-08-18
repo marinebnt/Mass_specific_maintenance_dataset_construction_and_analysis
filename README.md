@@ -15,7 +15,7 @@ Bruno ERNANDE (Bruno.Ernande@ifremer.fr).
 Responsible of data collection, codes development and online upload: Marine BENEAT.
 
 ## Cite the code:
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16893328.svg)](https://zenodo.org/badge/DOI/10.5281/zenodo.16893328.svg)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16893328.svg)](https://zenodo.org/records/16893328)
 
 ## Layout
 The repository is split into three main directories: The first one is about the dataset construction, the second about data analysis, and the third one is the .csv file with the 18,129 species trait values estimated using the inference process. 
