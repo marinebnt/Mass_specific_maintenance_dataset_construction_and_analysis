@@ -1,6 +1,6 @@
 # beneat marine 
 # 14/10/24 
-# PCA of the Teleostei species
+# PCA of the teleost species
 
 
 
@@ -10,15 +10,15 @@ colAA <- c()
 labelAA <- c()
 pchvec <- c()
 iopp <- which.max(as.data.frame(AAteleo$archetypes)$K) 
-colAA[iopp] = "tomato"
+colAA[iopp] =  "#F8766D"
 labelAA[iopp] = "Fast"
-pchvec[iopp] = c(23)
+pchvec[iopp] = c(24)
 ieq <- which.min(as.data.frame(AAteleo$archetypes)$K) 
-colAA[ieq] = "royalblue"
+colAA[ieq] = "#00BFC4"
 labelAA[ieq] = "Slow"
 pchvec[ieq] = c(22)
 iper <- c(1:3)[-c(ieq, iopp)]
-colAA[iper] = "darkgreen"
+colAA[iper] = "#7CAE00"
 labelAA[iper] ="Intermediate"
 pchvec[iper] = c(21)
 
@@ -44,11 +44,14 @@ datatoadd <- matrixAAinPCA[,AXESTOREPRESENT]
 rownames(datatoadd)<- NULL
 labels <- labelAA
 datatoadd <- data_frame(x=datatoadd[,1], y=datatoadd[,2], z=labels, pchvec=pchvec)
-datatoadd$Archetypes <- labelAA
+datatoadd$Archetypes <- as.factor(labelAA)
 datatoadd$colAA <- colAA
 order_table <- order(datatoadd$Archetypes)
-order_table <- c(2,3,1)
-datatoadd <- datatoadd[order_table, ]
+order_table <- c(which((factor(labelAA)) == "Fast"),which((factor(labelAA)) == "Slow"),which((factor(labelAA)) == "Intermediate"))
+datatoadd <- datatoadd[order_table,]
+order_table <- c(which(levels(factor(labelAA)) == "Fast"),which(levels(factor(labelAA)) == "Slow"),which(levels(factor(labelAA)) == "Intermediate"))
+datatoadd$Archetypes <- factor(datatoadd$Archetypes, levels = levels(datatoadd$Archetypes)[order_table])
+
 
 # prepare the data for the arrows indentification
 rownames(res.pca$rotation) <- traits
@@ -76,42 +79,49 @@ plot <- fviz_pca_biplot(res.pca, axes = AXESTOREPRESENT,
   # Manually adjust the guide to show the ellipse shapes and lines
   guides(fill = "none", 
          linetype = guide_legend("Class"))
-plot <- plot+ new_scale_color()+
-  geom_point(data = datatoadd,
-             aes(x = x, y = y,
-                 shape = Archetypes, 
-                 colour = Archetypes),
-             size = 6, stroke = 1) +
-  scale_color_manual(
-    values = datatoadd$colAA, guide = "legend")
-
+plot <- plot+ new_scale_fill()+
+  geom_point(
+    data = datatoadd,
+    aes(
+      x = x, 
+      y = y,
+      shape = Archetypes,       
+      fill = Archetypes         
+    ),
+    colour = "black",           
+    size = 6,
+    stroke = 1
+  ) +
+  scale_shape_manual(values = datatoadd$pchvec) + 
+  scale_fill_manual(values = datatoadd$colAA)
 print(plot)
+
 pdf(file = paste0(path_plots, "/PCA_teleo_time.pdf"))
-plot
+print(plot)
 dev.off()
 
 
 
-# plot
-fviz_pca_biplot(res.pca,
-                label = c("var"),
-                habillage = , 
-                fill.ind = as.factor(dataphylo_noelasmo$Species),
-                col.ind=as.factor(dataphylo_noelasmo$Species),
-                
-                select.ind = list(name = which(dataphylo$Species %in% c("Gadus macrocephalus", "Chaenocephalus aceratus", "Lipophrys pholis",
-                                                           "Engraulis australis", "Brevoortia tyrannus"))), 
-                pointshape=19,
-                arrowsize = 0.25, 
-                col.var = "darkblue", alpha = 0.2, repel= T)+
-  scale_colour_manual(values = c("darkorchid4", "#4575b4", "#91bfdb", "#fc8d59", "gold"), name="Outliers of the \ncross-validation") +
-  ggtitle(NULL)+
-  labs()+ 
-  theme_minimal()+
-  theme(text = element_text(size = 12),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 12))+
-  guides(shape="none", fill="none")
+# # plot to visualise specific species if needed
+# fviz_pca_biplot(res.pca,
+#                 label = c("var"),
+#                 habillage = , 
+#                 fill.ind = as.factor(dataphylo_noelasmo$Species),
+#                 col.ind=as.factor(dataphylo_noelasmo$Species),
+#                 
+#                 select.ind = list(name = which(dataphylo$Species %in% c("Gadus macrocephalus", "Chaenocephalus aceratus", "Lipophrys pholis",
+#                                                            "Engraulis australis", "Brevoortia tyrannus"))), 
+#                 pointshape=19,
+#                 arrowsize = 0.25, 
+#                 col.var = "darkblue", alpha = 0.2, repel= T)+
+#   scale_colour_manual(values = c("darkorchid4", "#4575b4", "#91bfdb", "#fc8d59", "gold"), name="Outliers of the \ncross-validation") +
+#   ggtitle(NULL)+
+#   labs()+ 
+#   theme_minimal()+
+#   theme(text = element_text(size = 12),
+#         axis.title = element_text(size = 12),
+#         axis.text = element_text(size = 12))+
+#   guides(shape="none", fill="none")
 
 save(plot, file=paste0(path_plots, "/TELEO_PCA_time.RData"))
 

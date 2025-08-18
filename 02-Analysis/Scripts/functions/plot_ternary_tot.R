@@ -3,13 +3,6 @@
 # Ternary plots of the archetypal analysis
 
 
-# without log_k
-# colAA = c("darkgreen", "royalblue",  "tomato")
-# labelAA = c("Periodic", "Equilibrium", "Opportunistic")
-# i_elasmo = 2 
-# i_opp = 6
-
-# with log_k
 
 # veccol veccnames
 colAA <- c()
@@ -73,6 +66,7 @@ genecolour <- rep('NA', nrow(df))
 genecolour2 <- rep('NA', nrow(df))
 
 genecolour[dataphylo$Family == 'Gobiidae'] <- 'brown3' #Gobiidae #Poeciliidae
+# genecolour[dataphylo$Family == 'Engraulidae'] <- 'brown3' #Gobiidae #Poeciliidae
 genecolour[dataphylo$Family == 'Mugilidae'] <- '#00b159' # Mugilidae # *** Labridae *** # Sparidae #Trichiuridae # Gadidae #Clupeidae # Salmonidae #Scombridae
 genecolour[dataphylo$Family == 'Sebastidae'] <- 'royalblue' #Squlidae #Ariidae
 genecolour2[dataphylo$Family == 'Blenniidae'] <- 'black'
@@ -111,18 +105,16 @@ plot <- ggtern(df,aes(x=x,y=y,z=z)) +
   scale_colour_manual(values = c( "Sebastidae" = "royalblue", 
                                   "Gobiidae" = "tomato", "Labridae"="#00b159"))+
   geom_label(data = dfLabs, label = genecolour_names, alpha=0.4)
-  # geom_text(aes(label = genecolour_names), 
-  #           hjust = -0.2, 
-  #           vjust = -1.5, 
-  #           size = 4.5, 
-  #           fontface = "italic",  
-  #           color = genecolour2)
+
+
 plot
 pdf(paste0(path_plots, "/ternary_plot_tot_spe_archetypes_time.pdf"))
 print(plot)
 dev.off()
 
-# par(mfrow = c(2, 2), mar = rep(0.5, 4))
-# plot
-# plot1
-# dev.off()
+
+blank<-grid::grid.rect(gp=gpar(col="white"))
+arrangeGrob(plot, plot1, grid)
+combined <- ggtern::grid.arrange(plot, plot1)
+ggsave(combined, file=paste0(path_plots, "/ternary_combined_time.pdf"), width=7 , height=9)
+

@@ -17,8 +17,8 @@
 K_M_LOG = T  # **** ############### ARE K AND M in LOG ????
 ############################## Prepare dataset ##########################
 
-path_phylosem_out <- paste0(getwd(), "/01-Simulations/", OUTPUT_phylo)
-path_output_genus <- paste0(getwd(), "/01-Simulations/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho")
+path_phylosem_out <- paste0(getwd(), "/01-Dataset_construction/", OUTPUT_phylo)
+path_output_genus <- paste0(getwd(), "/01-Dataset_construction/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho")
 path_analysis_out <- paste0(getwd(), "/02-Analysis/", OUTPUT)
 dir.create(path_analysis_out)
 

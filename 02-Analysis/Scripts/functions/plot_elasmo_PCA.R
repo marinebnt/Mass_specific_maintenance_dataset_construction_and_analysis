@@ -1,6 +1,6 @@
 # beneat marine 
 # 14/10/24 
-# PCA for elasmobranchii species
+# PCA for elasmobranch species
 
 
 # veccol veccnames
@@ -8,15 +8,15 @@ colAA <- c()
 labelAA <- c()
 pchvec <- c()
 iopp <- which.max(as.data.frame(AAelasmo$archetypes)$K) 
-colAA[iopp] = "tomato"
+colAA[iopp] = "#F8766D"
 labelAA[iopp] = "Fast"
-pchvec[iopp] = c(23)
+pchvec[iopp] = c(24)
 ieq <- which.min(as.data.frame(AAelasmo$archetypes)$K) 
-colAA[ieq] = "royalblue"
+colAA[ieq] = "#00BFC4"
 labelAA[ieq] = "Slow"
 pchvec[ieq] = c(22)
 iper <- c(1:3)[-c(ieq, iopp)]
-colAA[iper] = "darkgreen"
+colAA[iper] = "#7CAE00"
 labelAA[iper] ="Intermediate"
 pchvec[iper] = c(21)
 
@@ -50,18 +50,20 @@ rownames(datatoadd)<- NULL
 labels <- labelAA
 datatoadd <- data_frame(x=datatoadd[,1], y=datatoadd[,2], z=labels, pchvec=pchvec)
 datatoadd$Archetypes <- labelAA
+datatoadd$Archetypes <- as.factor(labelAA)
 datatoadd$colAA <- colAA
 order_table <- order(datatoadd$Archetypes)
-order_table <- c(2,3,1)
-datatoadd <- datatoadd[order_table, ]
+order_table <- c(which((factor(labelAA)) == "Fast"),which((factor(labelAA)) == "Slow"),which((factor(labelAA)) == "Intermediate"))
+datatoadd <- datatoadd[order_table,]
+order_table <- c(which(levels(factor(labelAA)) == "Fast"),which(levels(factor(labelAA)) == "Slow"),which(levels(factor(labelAA)) == "Intermediate"))
+datatoadd$Archetypes <- factor(datatoadd$Archetypes, levels = levels(datatoadd$Archetypes)[order_table])
+
+
 # prepare the data for the arrows indentification
 rownames(res.pca$rotation) <- traits
 
-# plot
 
-# col_temp <- rep('grey', length(AAelasmo$alphas[,1]))
-# col_temp[which(AAelasmo$alphas[,2]>0.7)] <- "red"
-  
+# plot
 mycol =  c("darkorchid4", "cyan3", "#4575b4", "#91bfdb", "#fee090", "#fc8d59","#d73027") 
 plot <- fviz_pca_biplot(res.pca, axes = abs(AXESTOREPRESENT),
                         label = c("none"),  
@@ -72,12 +74,6 @@ plot <- fviz_pca_biplot(res.pca, axes = abs(AXESTOREPRESENT),
   geom_text_repel(data = as.data.frame(res.pca$rotation), 
                   aes(x = PC1*c(rep(7, length(PC1))), y = PC2*c(rep(3, length(PC1))), label = rownames(res.pca$rotation)),
                   size = 5, color = "midnightblue")+
-  
-  # scale_colour_gradient(
-  #   low = "#4575b4",
-  #   high = "#fc8d59", 
-  #   name="RMR0 color gradient"
-  # )+
   ggtitle(NULL) +
   theme(text = element_text(size = 12),
         axis.title = element_text(size = 12),
@@ -89,15 +85,24 @@ plot <- fviz_pca_biplot(res.pca, axes = abs(AXESTOREPRESENT),
   # Manually adjust the guide to show the ellipse shapes and lines
   guides(fill = "none",
          linetype = guide_legend("Class"))
-plot <- plot+ new_scale_color()+
-  geom_point(data = datatoadd,
-             aes(x = x, y = y,
-                 shape = Archetypes, 
-                 colour = Archetypes),
-             size = 6, stroke = 1) +
-  scale_color_manual(
-    values = datatoadd$colAA, guide = "legend")
+plot <- plot+ new_scale_fill()+
+  geom_point(
+    data = datatoadd,
+    aes(
+      x = x, 
+      y = y,
+      shape = Archetypes,       
+      fill = Archetypes         
+    ),
+    colour = "black",           
+    size = 6,
+    stroke = 1
+  ) +
+  scale_shape_manual(values = datatoadd$pchvec) + 
+  scale_fill_manual(values = datatoadd$colAA)
 
+
+# save
 pdf(file = paste0(path_plots, "/PCA_elasmo_time.pdf"), width=3.14961, height=3.14961)
 print(plot)
 dev.off()

@@ -4,6 +4,8 @@
 #* with traits related to time or traits of different kinds
 #* 
 
+library(ggpubr)
+
 
 load(file=paste0(path_plots, "/ELASMO_PCA_time.RData"))
 elasmo <- plot
@@ -12,28 +14,19 @@ tot <- plot
 load(file=paste0(path_plots, "/TELEO_PCA_time.RData"))
 teleo <- plot
 
-# 
-# plotall <- ggarrange(tot, teleo, legend, elasmo, labels = c("A","B","", "C"))
-# 
-# ggsave(file = paste0(path_plots, "/PCA_combined_time.pdf"), width=13, height=9.5)
-
-library(ggpubr)
 
 # Extract the legend from one of the plots
 tot_plot <- tot + guides(
   shape = "none",     # remove shape legend
   fill = "none",      # remove fill legend
-  color = "none",     # remove color legend
 )
 teleo_plot <- teleo + guides(
   shape = "none",     # remove shape legend
   fill = "none",      # remove fill legend
-  color = "none",     # remove color legend
 )
 elasmo_plot <- elasmo + guides(
   shape = "none",     # remove shape legend
   fill = "none",      # remove fill legend
-  color = "none",     # remove color legend
 )
 
 teleo_legend <- tot + guides(

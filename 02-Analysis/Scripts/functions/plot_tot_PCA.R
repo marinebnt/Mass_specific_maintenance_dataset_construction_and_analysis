@@ -4,17 +4,6 @@
 
 
 
-
-
-# OUTPUT= "Outputs_exp_nounitcv" # ****
-# # with log_k
-# colAA = c("royalblue",  "darkgreen", "tomato")
-# labelAA = c("Equilibrium", "Periodic", "Opportunistic")
-# pchvec = c(22,23,21)
-# i_elasmo = 30
-# i_opp = 21
-# without log_k
-
 i_elasmo = 2 
 i_opp = 6
 
@@ -23,15 +12,15 @@ colAA <- c()
 labelAA <- c()
 pchvec <- c()
 iopp <- which.max(as.data.frame(AAtot$archetypes)$K) 
-colAA[iopp] = "tomato"
+colAA[iopp] = "#F8766D"
 labelAA[iopp] = "Fast"
-pchvec[iopp] = c(23)
+pchvec[iopp] = c(24)
 ieq <- which.min(as.data.frame(AAtot$archetypes)$K) 
-colAA[ieq] = "royalblue"
+colAA[ieq] = "#00BFC4"
 labelAA[ieq] = "Slow"
 pchvec[ieq] = c(22)
 iper <- c(1:3)[-c(ieq, iopp)]
-colAA[iper] = "darkgreen"
+colAA[iper] = "#7CAE00"
 labelAA[iper] ="Intermediate"
 pchvec[iper] = c(21)
 
@@ -69,9 +58,14 @@ rownames(datatoadd)<- NULL
 labels <- labelAA
 datatoadd <- data_frame(x=datatoadd[,1], y=datatoadd[,2], z=labels, pchvec=pchvec)
 datatoadd$Archetypes <- labelAA
+datatoadd$Archetypes <- as.factor(labelAA)
 datatoadd$colAA <- colAA
-order_table <- c(2,3,1)
-datatoadd <- datatoadd[order_table, ]
+order_table <- order(datatoadd$Archetypes)
+order_table <- c(which((factor(labelAA)) == "Fast"),which((factor(labelAA)) == "Slow"),which((factor(labelAA)) == "Intermediate"))
+datatoadd <- datatoadd[order_table,]
+order_table <- c(which(levels(factor(labelAA)) == "Fast"),which(levels(factor(labelAA)) == "Slow"),which(levels(factor(labelAA)) == "Intermediate"))
+datatoadd$Archetypes <- factor(datatoadd$Archetypes, levels = levels(datatoadd$Archetypes)[order_table])
+
 
 # prepare the data for the arrows indentification
 rownames(res.pca$rotation) <- traits
@@ -109,24 +103,31 @@ plot <- fviz_pca_biplot(res.pca, axes = AXESTOREPRESENT,
                y = as.numeric(datatoadd[which(labelAA=="Equilibrium"), 2]*1.3), ysize = 0.4) +
   add_phylopic(opp_pic, alpha = 1, x = as.numeric(datatoadd[which(labelAA=="Opportunistic"), 1]*1.3), 
                y = as.numeric(datatoadd[which(labelAA=="Opportunistic"), 2]*1.3), ysize = 0.4) +
-  guides(linetype = guide_legend("Class")) #, override.aes =
-  #                                  list(linetype = c(1,3), shape=c(2))), fill="none", 
-  #        point = guide_legend(override.aes=list(fill=c(mycol[1:4], "white", "white"))),
-  #        point = guide_legend(override.aes=list(data = datatoadd, aes(x = x, fill = colAA, y = y, 
-  #                                                                     shape = as.factor(pchvec)))))
+  guides(linetype = guide_legend("Class"))
 
-plot <- plot+ new_scale_color()+
-  geom_point(data = datatoadd,
-                 aes(x = x, y = y,
-                     shape = Archetypes, 
-                     colour = Archetypes),
-                 size = 6, stroke = 1) +
-  scale_color_manual(
-    values = datatoadd$colAA, guide = "legend")
+plot <- plot+ new_scale_fill()+
+  geom_point(
+    data = datatoadd,
+    aes(
+      x = x, 
+      y = y,
+      shape = Archetypes,       
+      fill = Archetypes         
+    ),
+    colour = "black",          
+    size = 6,
+    stroke = 1
+  ) +
+  scale_shape_manual(values = datatoadd$pchvec) +
+  scale_fill_manual(values = datatoadd$colAA)
+
 plot
 
+
+
+# save 
 pdf(file = paste0(path_plots, "/PCA_tot_time.pdf"))
-plot
+print(plot)
 dev.off()
 
 

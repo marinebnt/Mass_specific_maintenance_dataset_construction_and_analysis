@@ -37,6 +37,8 @@ library(pROC)
 library(rstatix)
 library(ggpubr)
 library(outliers)
+library(grid)
+
 
 suppressWarnings(RNGversion("3.5.0"))
 set.seed(1986)
@@ -137,12 +139,6 @@ dataacp_add_colorvector <- function(dataphylo, kclusters, dataacp, plot_binary=F
       scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +
       xlab('Number of clusters')
     scree_plot
-    # scree_plot +
-    #   geom_hline(
-    #     yintercept = wss, 
-    #     linetype = 'dashed', 
-    #     col = c(rep('#000000',6),'#FF0000', rep('#000000', 3))
-    #   )
   }
   
   # extract clusters to use as color vector
@@ -411,11 +407,6 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       expected <- c()
       errorpercent    <- c()
       
-      # if (checkmate::checkFileExists(paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"), access = "r")==TRUE){
-      #   dataseterrorE <- read.csv2( paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))
-      # }
-
-      # else{
         for (i in 1:nbCV){
           cat("\n---------> CV", i)
           toterror <- checkphylosemdata(fileID=i, semID=sem, trait=j, name=name, sample=sample[[k]], maxCV=maxCV[[k]])
@@ -439,17 +430,10 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
         df <- df.residual(mod)
         p_value <- 2 * pt(-abs(t_value), df)
         
-        # https://www.mathworks.com/help/stats/outlier-detection-using-quantile-regression.html
-        # dataframe_outliers <- data.frame(infered, expected, infered-expected)
-        # Q1 <-quantile(dataframe_outliers[,3])[2]
-        # Q3 <-quantile(dataframe_outliers[,3])[4]
-        # IQ <- abs(Q3)+abs(Q1)
-        # Booleand_outliers = ifelse((dataframe_outliers[,3]>c(Q3+IQ*1.5)), 1, 0)
-        # Booleand_outliers[which((dataframe_outliers[,3]<c(IQ*1.5-Q1)))] <- 1
-        
         #
         missing_cooksd <- c(0)
         
+        # clean data
         if (length(which(is.nan(dataframe_outliers$infered)))>0){
           missing_cooksd <-which(is.nan(dataframe_outliers$infered))
           label <- label[-missing_cooksd]
@@ -458,7 +442,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
           errorpercent<-errorpercent[-missing_cooksd]
         }
         
-        
+        # save dataset errors with outliers
         model <- modelname[sem]
         if (sem==1){ dataseterrorE <- data.frame(label, infered, expected, errorpercent, Booleand_outliers)}
         if (sem==2){ dataseterrorM <- data.frame(label, infered, expected, errorpercent, Booleand_outliers)
@@ -469,8 +453,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
         dataseterrorE$lab[which(dataseterrorE$Booleand_outliers ==1)] <- dataseterrorE$label[which(dataseterrorE$Booleand_outliers ==1)]
         if (sem==1){  write.csv(dataseterrorE, paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))}
         if (sem==2){  write.csv(dataseterrorM, paste0(path_CV,  "/dataseterror", modelname[sem], name, j, ".csv"))}
-        
-      # }
+
       
       # Estimate percentage variance explained
       dataseterrorE <- na.omit(dataseterrorE)
@@ -480,8 +463,8 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       ROC = roc(dataseterrorE$expected, dataseterrorE$infered)
       AUC = round(auc(ROC)*100)
       
-      # plots
-      
+      # PLOTS
+      # Qualitative traits
       if (sum(dataseterrorE$expected %in% c(1,0,NA))==length(dataseterrorE$expected)){
         plt = ggplot(dataseterrorE, aes(d = expected, m = infered)) + geom_roc(n.cuts = 0) + 
           ggtitle(paste0(names_var_i, "\nAUC =", AUC, "%"))+
@@ -490,14 +473,16 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
           theme(axis.text.y = element_text(size = 9),
                 axis.text.x = element_text(size = 9),
                 plot.title = element_text(size=12))+ 
-          labs(y = "Predicted", x = "Observed")
+          labs(y = "Predicted", x = "Observed")+ 
+          theme(legend.position = "none")
       }
+      # c_m alone with its outliers
       if (trait == "c_m"){ 
-        plt <- ggplot(dataseterrorE, aes(x = `infered`, y = `expected`)) +
+        plt <- ggplot(dataseterrorE, aes(y = `infered`, x = `expected`)) +
           geom_point(pch = 19, alpha = 0.6, colour = ifelse(dataseterrorE$Booleand_outliers, "darkorange", "black")) +
           geom_abline(slope = 1, intercept = 0, aes(color = "red"), 
                       color = "red", linetype = "dashed", lwd = 1.5) +
-          geom_smooth(aes(color = "blue")) +
+          geom_smooth(aes(color = "blue"), method = "loess") +
           geom_text_repel(data = dataseterrorE, aes(label = ifelse(Booleand_outliers, ID, "")),
                           size = 3.5) +
           theme_classic() +
@@ -505,7 +490,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
             plot.title = element_text(size = 12),
             axis.text.y = element_text(size = 12),
             axis.text.x = element_text(size = 12)) + 
-          ggtitle(paste0(names_var_i, paste0("\nPVE=", label_percent()(PVEe), "\nSlope=", slope))) +
+          ggtitle(paste0(names_var_i, paste0("\nPVE=", label_percent()(PVEe), "\nSlope=", round(slope,3)))) +
           scale_color_identity(name = "Model fit",
                                breaks = c("red", "blue"),
                                labels = c("x=y", "Loess"),
@@ -513,12 +498,13 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
           labs(y = "Predicted", x = "Observed")+ 
           theme(legend.position = "none")
       }
+      # Quantitative traits other than c_m
       if(!(sum(dataseterrorE$expected %in% c(1,0,NA))==length(dataseterrorE$expected)) && !(trait == "c_m")) {
         dataseterrorE$LineType <- factor("LOESS")
-        plt <- ggplot(dataseterrorE, aes(x=`infered`, y=`expected`)) +
+        plt <- ggplot(dataseterrorE, aes(y=`infered`, x=`expected`)) +
           geom_point(pch=21, alpha=0.5)+ 
           geom_abline(slope = 1, intercept = 0, aes(color="red"), color="red", linetype = "dashed", lwd = 1.5)  +
-          geom_smooth(aes(color = "blue", )) +
+          geom_smooth(aes(color = "blue"), method = "loess") +
           theme_classic()+
           theme(
             plot.title = element_text(size=12),
@@ -529,8 +515,9 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
                                breaks = c("red", "blue"),
                                labels = c("x=y", "Loess"),
                                guide = "legend") + 
-          expand_limits(x = 0, y = 0)+ 
-          labs(y = "Predicted", x = "Observed")
+          expand_limits(x = 0, y = 0) + 
+          labs(y = "Predicted", x = "Observed")+ 
+          theme(legend.position = "none")
       }
       grDevices::pdf(file=paste0(pathoutput_CV,  "/plot_CrossValidation/", modelname[sem], name, j, "plotCV.pdf"))
       print(plt)
@@ -543,6 +530,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       print(plt2)
       dev.off()
     }
+    # arrange plots
     if (length(trait)>1){
       length(myplotlist)      
       par(oma=c(1, 1, 1, 1))
