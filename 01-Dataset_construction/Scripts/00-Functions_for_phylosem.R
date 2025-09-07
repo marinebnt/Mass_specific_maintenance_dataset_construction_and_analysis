@@ -14,11 +14,32 @@ library(ggpubr)
 library(scales)
 library(plotROC)
 library(pROC)
+library(fishtree)
+library(rotl)
+library(rsample)
 
 
-
-
-
+osmosespnames <- c("Alosa alosa",                "Alosa fallax",                "Anguilla anguilla",           "Argyrosomus regius",          "Aristaeomorpha foliacea",
+                   "Aristeus antennatus",         "Atherina boyeri",             "Auxis rochei",          "Belone belone",               "Boops boops",
+                   "Caranx crysos",               "Chelidonichthys lucerna",     "Coris julis",                 "Coryphaena hippurus",         "Crangon crangon",
+                   "Crystallogobius linearis",    "Dentex dentex",               "Dentex gibbosus",             "Dentex maroccanus",           "Dicentrarchus labrax",
+                   "Diplodus annularis",          "Diplodus cervinus",           "Diplodus puntazzo",           "Diplodus sargus",       "Diplodus vulgaris",
+                   "Eledone cirrhosa",            "Engraulis encrasicolus",      "Epinephelus aeneus",          "Epinephelus marginatus",      "Etrumeus sadina",
+                   "Eutrigla gurnardus",          "Galeus melastomus",           "Gobius niger",                "Halobatrachus didactylus",    "Illex coindetii",
+                   "Lepidorhombus whiffiagonis",  "Chelon auratus",                 "Chelon ramada",                 "Chelon saliens",                "Loligo vulgaris",
+                   "Lophius budegassa",           "Lophius piscatorius",         "Merlangius merlangus",        "Merluccius merluccius",       "Micromesistius poutassou",
+                   "Mugil cephalus",              "Mullus barbatus",             "Mullus surmuletus",           "Mustelus mustelus",           "Nephrops norvegicus",
+                   "Octopus vulgaris",            "Pagellus acarne",             "Pagellus erythrinus",         "Pagrus pagrus",               "Palaemon serratus",
+                   "Palinurus elephas",           "Parapenaeus longirostris",    "Penaeus kerathurus",          "Phycis phycis",               "Platichthys flesus",
+                   "Pleuronectes platessa",       "Pomatomus saltatrix",         "Pomatoschistus marmoratus",   "Pomatoschistus minutus",      "Rhinobatos rhinobatos",
+                   "Sarda sarda",                 "Sardina pilchardus",          "Sardinella aurita",           "Saurida undosquamis",         "Sciaena umbra",
+                   "Scomber japonicus",          "Scomber scombrus",            "Scophthalmus maximus",        "Scorpaena notata",            "Scyliorhinus canicula",
+                   "Sepia officinalis",           "Seriola dumerili",            "Serranus atricauda",          "Solea solea",                 "Sparus aurata",
+                   "Sphyraena sphyraena",         "Sphyraena viridensis",        "Spicara maena",               "Spicara smaris",              "Spondyliosoma cantharus",
+                   "Sprattus sprattus",           "Squilla mantis",              "Stephanolepis diaspros",      "Thunnus alalunga",            "Thunnus thynnus",
+                   "Trachurus mediterraneus",     "Trachurus picturatus",        "Trachurus trachurus",         "Trachyrincus scabrus",        "Trigla lyra",
+                   "Trisopterus luscus",          "Trisopterus minutus",         "Upeneus moluccensis",         "Xiphias gladius",             "Gobius ophiocephalus",
+                   "Ost euphausiids")
 
 ###########################
 ###########################

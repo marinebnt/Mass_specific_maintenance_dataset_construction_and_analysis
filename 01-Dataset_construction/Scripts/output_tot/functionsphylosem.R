@@ -17,6 +17,8 @@ library(ggpubr)
 library(scales)
 library(plotROC)
 library(pROC)
+library(rsample)
+library(rotl)
 
 addhabitatcolumn <- function(dataphylo){
   hhabtot <- apply(dataphylo[, c("habitatpelagic", "habitatdemersal", "habitatbenthopelagic")], 1, which.max)
@@ -50,48 +52,57 @@ ratioTOtrait <- function(ratio, operator, IS_OPERATOR_Loo, IS_LOG_M){
 
 psem <- function(semID, trait, nameCV){
   
-  if (length(trait)==1){
-    traitNAME = trait
-    totvar <- var(na.omit(dataext_traits[,trait]))
-    totmed <- median(na.omit(dataext_traits[,trait]))
-    IDNA   <- which(!is.na(dataext_traits[,trait]))
-    maxCV  <- length(IDNA)/nbCV
-    
+  if (nameCV == "all"){
+    k_CV <- rsample::vfold_cv(as.data.frame(dataset), v=nbCV, repeats = rep)
+  }
+  if (nameCV %in% c("c_m", "spe")){
+    data_only_trait <- dataset[-which(is.na(dataset[,trait])), ]
+    totvar          <- var(data_only_trait[,trait])
+    if (nameCV  == "c_m"){
+      data_only_trait  <- table(data_only_trait$Genus)
+    }
     repeat {
-      sample  <- sample(IDNA, replace=F)  # this is to sample only among species with trait values different from NA
+      k_CV  <- rsample::vfold_cv(as.data.frame(data_only_trait), v=nbCV, repeats = rep)
       CVvar  <- c()
       CVmed  <- c()
       for (i in 1:nbCV){
-        sampleID <- sample[floor((1+floor(maxCV)*(i-1))):(floor(maxCV)*i)]
-        CVvar[i] <- var(dataext_traits[sampleID, trait])
-        CVmed[i] <- median(dataext_traits[sampleID, trait])
+        if(nameCV  == "c_m"){
+          genus    <- names(data_cv_c_m)[k_CV$splits[[i]]$in_id]
+          sampleID <- which(dataset[-which(is.na(dataset[,trait])), ]$Genus %in% genus)
+        } else {
+          sampleID <- k_CV$splits[[i]]$in_id 
+        }
+        CVvar[i] <- var(dataset[-which(is.na(dataset[,trait])), ][-sampleID, trait])
+        CVmed[i] <- median(dataset[-which(is.na(dataset[,trait])), ][-sampleID, trait])
       }
       if (abs(100*max(abs(CVvar))/totvar - 100)<10 ){ break } #& abs(100*max(abs(CVmed))/totmed - 100)<10
     }
   }
-  if (length(trait)!=1) {
-    traitNAME = c("TOT")	
-    maxCV  <- maxtot
-    sample <- sample(IDtot, replace=F)
-  }
-  
-  
   
   for (semIDi in semID){
     for (i in 1:nbCV){
-      
-      whichNA <- sample[floor((1+floor(maxCV)*(i-1))):(floor(maxCV)*i)]
-      data_CV <- dataext_traits
-      data_CV[whichNA,trait] <- NA
+      if (nameCV == "all"){
+        whichnotNA <- k_CV$splits[[i]]$in_id
+      }
+      if (nameCV != "all"){
+        if(nameCV  == "c_m"){
+          genus      <- names(data_cv_c_m)[k_CV$splits[[i]]$in_id]
+          whichnotNA <- which(dataset$Genus %in% genus)
+        } else {
+          whichnotNA_trait <- k_CV$splits[[i]]$in_id 
+          whichnotNA <- which(dataset$SpecCode %in% data_only_trait$SpecCode[whichnotNA_trait])
+        }
+      }
+      data_CV <- dataset_traits
+      data_CV[-whichnotNA,trait] <- NA
       psem = phylosem(sem = as.character(modellist[[semIDi]]),
                       data = data_CV,
                       tree = P,
-                      family = c(rep("binomial", 3),  rep("fixed", 18) ),
+                      family = c(rep("binomial", 3),  rep("fixed", 15) ),
                       estimate_ou = FALSE,
                       estimate_lambda = FALSE,
                       estimate_kappa = FALSE,
-                      covs = colnames(data_CV),
-                      #newtonsteps = 1
+                      covs = colnames(data_CV)
       )
       matrixCSV[semIDi, i] <-  psem$opt$convergence
       assign(paste0("psemFINAL", "_rep", i, "_sem", semIDi), psem) # "_rep", i,
@@ -101,19 +112,19 @@ psem <- function(semID, trait, nameCV){
       df.4 = df.3[df.3$node.type == "tip", ]
       df = df.4[,!names(df.4) %in% c("node", "ancestor", "edge.length", "node.type")]
       
-      if (file.exists(paste0(pathoutput, "/", "output", i, "_", modelname[semIDi], "psemFINAL", nameCV, traitNAME, ".csv"))){
-        file.remove(paste0(pathoutput, "/", "output", i, "_", modelname[semIDi], "psemFINAL", nameCV, traitNAME, ".csv"))
+      if (file.exists(paste0(pathoutput, "/CrossValidation/", "output", i, "_", modelname[semIDi], "psemFINAL", nameCV, traitNAME, ".csv"))){
+        file.remove(paste0(pathoutput, "/CrossValidation/", "output", i, "_", modelname[semIDi], "psemFINAL", nameCV, traitNAME, ".csv"))
       }
-      write.csv(df, paste0(pathoutput, "/", "output", i, "_", modelname[semIDi], "psemFINAL", nameCV, traitNAME, ".csv"))
+      write.csv(df, paste0(pathoutput, "/CrossValidation/", "output", i, "_", modelname[semIDi], "psemFINAL", nameCV, traitNAME, ".csv"))
       
       matrixCSV[semIDi, i] <- psem$opt$convergence
     }
     
   }
   
-  write.csv(df, paste0(pathoutput, "/", "Convergence", i, "_", "CV", nameCV, traitNAME, ".csv"))
+  write.csv(df, paste0(pathoutput, "/CrossValidation/", "Convergence", i, "_", "CV", nameCV, traitNAME, ".csv"))
   
-  return(list(sample=sample, maxCV=maxCV))
+  return(list(sample=k_CV))
 }
 
 
@@ -141,8 +152,8 @@ checkphylosemdata <- function(fileID, semID, trait, name, sample, maxCV){
   whichNA   <- sample[floor((1+floor(maxCV)*(fileID-1))):(floor(maxCV)*fileID)]
   if (maxCV!=floor(maxCV) & fileID==nbCV){whichNA<-c(whichNA, sample[length(sample)])}
   
-  rest      <- dataext_traits[whichNA,]
-  data      <- read.csv(paste0(pathoutput, "/output", fileID, "_", modelname[semID], "psemFINAL", name, traitname, ".csv"))
+  rest      <- dataset_traits[-whichnotNA,]
+  data      <- read.csv(paste0(pathoutput, "/CrossValidation/output", fileID, "_", modelname[semID], "psemFINAL", name, traitname, ".csv"))
   
   # correct 'rest' considering the infered data is a ratio, and not the observed data (Lm and tm traits)
   # rest$Lm <- rest$Lm+rest$Loo
@@ -204,8 +215,8 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       expected <- c()
       errorpercent    <- c()
       
-      if (checkmate::checkFileExists(paste0(pathoutput,  "/dataseterror", modelname[sem], name, j, ".csv"), access = "r")==TRUE){
-        dataseterrorE <- read.csv2( paste0(pathoutput,  "/dataseterror", modelname[sem], name, j, ".csv"))
+      if (checkmate::checkFileExists(paste0(pathoutput,  "/CrossValidation/dataseterror", modelname[sem], name, j, ".csv"), access = "r")==TRUE){
+        dataseterrorE <- read.csv2( paste0(pathoutput,  "/CrossValidation/dataseterror", modelname[sem], name, j, ".csv"))
       }
       
       # else{
@@ -239,8 +250,8 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       if (sem==1){ dataseterrorE <- data.frame(label, infered, expected, errorpercent, Booleand_outliers)}
       if (sem==2){ dataseterrorM <- data.frame(label, infered, expected, errorpercent, Booleand_outliers)
       dataseterrorE <- dataseterrorM}
-      if (sem==1){  write.csv2(dataseterrorE, paste0(pathoutput,  "/dataseterror", modelname[sem], name, j, ".csv"))}
-      if (sem==2){  write.csv2(dataseterrorM, paste0(pathoutput,  "/dataseterror", modelname[sem], name, j, ".csv"))}
+      if (sem==1){  write.csv2(dataseterrorE, paste0(pathoutput,  "/CrossValidation/dataseterror", modelname[sem], name, j, ".csv"))}
+      if (sem==2){  write.csv2(dataseterrorM, paste0(pathoutput,  "/CrossValidation/dataseterror", modelname[sem], name, j, ".csv"))}
       
       # }
       
@@ -328,14 +339,14 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
 #          }
       }
       
-      grDevices::pdf(file=paste0(pathoutput,  "/plot/", modelname[sem], name, j, "plotCV.pdf"))
+      grDevices::pdf(file=paste0(pathoutput,  "/CrossValidation/plot/", modelname[sem], name, j, "plotCV.pdf"))
       print(plt)
       dev.off()
       
       plt <- plt + rremove("xlab") + rremove("ylab")
       myplotlist[[plotid]] <- plt
       
-      grDevices::pdf(file=paste0(pathoutput,  "/boxplot/", modelname[sem], name, j, "boxplotCV.pdf"))
+      grDevices::pdf(file=paste0(pathoutput,  "/CrossValidation/boxplot/", modelname[sem], name, j, "boxplotCV.pdf"))
       plt2 <- ggplot(dataseterrorE, aes(y=errorpercent)) + geom_boxplot()
       print(plt2)
       dev.off()
@@ -356,7 +367,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       if (length(arranged[[1]])==length(arranged[[2]])) {arranged_annot <-  lapply(arranged, plot_arrange)}
       else {arranged_annot <-  plot_arrange(arranged)}
       
-      grDevices::pdf(file=paste0(pathoutput, "/plot/", modelname[sem], name, "plotarrangedCV.pdf"))
+      grDevices::pdf(file=paste0(pathoutput, "/CrossValidation/plot/", modelname[sem], name, "plotarrangedCV.pdf"))
       print(arranged_annot)
       dev.off()
     }

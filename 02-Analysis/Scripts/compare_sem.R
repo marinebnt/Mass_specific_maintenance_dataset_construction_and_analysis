@@ -633,35 +633,35 @@ best.compare_phylosem <-
   }
 best.compare_phylosem(comparison)
 
-save.image(paste0(pathoutput, "/comparesemLAST.RData"))
-
-
-
-
-
-#06/11
-"stdmeca",
-114329.3 
-"TLstdmeca", ****
-  114276.0 
-"stdevol00", 
-114391.1 
-"stdevol0", 
-114369.0 
-"Woo2", 
-117379.3 
-"TLWoo", 
-117347.6 
-"WooWoo2",
-114574.5 
-"TLWooWoo", 
-114543.1 
-"stdLoo", 
-114316.3 
-"TLstdLoo"
-114294.7
-
-
-# 29/04
-   "stdmeca", "TLstdmeca", "stdevol00", "stdevol0", "Woo2", "TLWoo", "WooWoo2", "TLWooWoo", "stdLoo", "TLstdLoo"
-    115913.6  115893.3     115924.2     115902.1    119500.0   119463.3   116774.2 116738.0 115917.3   115895.1
+save.image(paste0(pathoutput, "/comparesem25_09_05.RData"))
+# 
+# 
+# 
+# 
+# 
+# #06/11
+# "stdmeca",
+# 114329.3 
+# "TLstdmeca", ****
+#   114276.0 
+# "stdevol00", 
+# 114391.1 
+# "stdevol0", 
+# 114369.0 
+# "Woo2", 
+# 117379.3 
+# "TLWoo", 
+# 117347.6 
+# "WooWoo2",
+# 114574.5 
+# "TLWooWoo", 
+# 114543.1 
+# "stdLoo", 
+# 114316.3 
+# "TLstdLoo"
+# 114294.7
+# 
+# 
+# # 29/04
+#    "stdmeca", "TLstdmeca", "stdevol00", "stdevol0", "Woo2", "TLWoo", "WooWoo2", "TLWooWoo", "stdLoo", "TLstdLoo"
+#     115913.6  115893.3     115924.2     115902.1    119500.0   119463.3   116774.2 116738.0 115917.3   115895.1

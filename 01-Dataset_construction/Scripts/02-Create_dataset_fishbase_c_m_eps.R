@@ -24,7 +24,7 @@ pathoutput <- paste0("01-Dataset_construction/Outputs/dataset_creation_output")
 
 ####
 oxdata <- read.csv(paste0(pathoutput, "/dataset_oxygen.csv"))
-spetot <- read.csv(paste0(pathoutput, "/dataset_spetot.csv"))
+spetot <- read.csv(paste0(pathoutput, "/dataset_totspe.csv"))
 #####################
 ######LINEAR MODEL###
 #####################
@@ -55,8 +55,10 @@ ox$weight_g_gamma    <- (ox$Weight*10^3)^(3/4)
 ox$temp_inv_k        <- -1/(ox$Temperature + 273.5)
 ox$ox_div_weight_log <-  log(ox$OxygenCons/ox$weight_g_gamma)
 data_ox_fr           <- data.frame(ox$weight_g_gamma, ox$temp_inv_k,
-                                   ox$ox_div_weight_log, ox$DemersPelag, ox$Genus)
-colnames(data_ox_fr) <- c("weig", "temp", "ox", "hab", "ge")
+                                   ox$ox_div_weight_log, ox$DemersPelag, ox$Genus, as.factor(ox$MetabolicLevel))
+colnames(data_ox_fr) <- c("weig", "temp", "ox", "hab", "ge", "measurement")
+data_ox_fr$measurement <- relevel(data_ox_fr$measurement, ref="standard")  # the reference metabolism is STANDARD = ROUTINE
+
 
 # create a function that will unscale the data when it got scaled
 # adapted to lm and lmm 
@@ -88,7 +90,7 @@ rescale.coefs <- function(beta,mu,sigma, repnb, coefname_) {
 }
 
 # linear models without scaling
-lm_ox    <- lm(data=data_ox_fr, ox ~ ge+temp+temp:ge)
+lm_ox    <- lm(data=data_ox_fr, ox ~ ge+temp * measurement +temp:ge)
 Anova(lm_ox)
 #lmm_ox   <- lmer(data=data_ox_fr, ox ~ hab*temp+(temp|ge)) #does not run because of scales
 coefname <- names(coef(lm_ox))
@@ -104,15 +106,15 @@ m        <- colMeans(data_ox_fr[p.order])
 s        <- apply(data_ox_fr[p.order],2,sd)
 data_ox_fr[, p.order] <- sapply(data_ox_fr[, p.order], scale)
 
-c <- scaleBy(.~., data=data_ox_fr[,c("ox","temp", "ge")], scale=FALSE)
+c <- scaleBy(.~., data=data_ox_fr[,c("ox","temp", "ge", "measurement")], scale=FALSE)
 c <- purrr::list_rbind(c)
 d=c
 # c=data_ox_fr
 
 # linear models with the scaled data
-lm_ox_S  <- lm(data=data_ox_fr, ox ~ ge+temp+temp:ge + 0)
-lmm_ox_S <- lmer(data=data_ox_fr, ox ~  temp + (temp|ge))
-
+lm_ox_S  <- lm(data=data_ox_fr, ox ~ ge+temp*measurement+temp:ge + 0)
+lmm_ox_S <- lmer(data=data_ox_fr, ox ~  temp * measurement + (temp|ge))
+    # we take the measurement effect. by having it in the regression 
 # plots check 
 lattice::dotplot(ranef(lmm_ox_S))
 par(mfrow=c(2,2))
@@ -124,7 +126,7 @@ plot(lmm_ox_S, rstudent(.) ~ hatvalues(.))
 plot(lmm_ox_S, type=c("p","smooth"), col.line=1)
 
 # linear models second version + plots
-lmm_ox_S_2 <- lmer(data=c, ox ~ temp+(temp|ge))
+lmm_ox_S_2 <- lmer(data=c, ox ~ temp*measurement+(temp|ge))
 lattice::dotplot(ranef(lmm_ox_S_2)) # this is not what we want
 par(mfrow=c(2,2))
 lattice::qqmath(lmm_ox_S_2)
@@ -157,7 +159,7 @@ dat_test <- data_ox_fr %>%
   slice(-head(row_number(), 3)) %>%
   ungroup()
 ## Fit mixed model
-fit_lmer2 <- lmer(data=dat_train, ox ~  temp + (temp|ge))
+fit_lmer2 <- lmer(data=dat_train, ox ~  temp * measurement + (temp|ge))
 summary(fit_lmer2)
 # Predict on training set
 train_preds  <- merTools::predictInterval(fit_lmer2, newdata = dat_train, n.sims = 100, returnSims = TRUE, seed = 657, level = 0.9) %>%
@@ -209,7 +211,7 @@ dat_test <- c %>%
   slice(-head(row_number(), 3)) %>%
   ungroup()
 ## Fit mixed model
-fit_lmer2 <- lmer(data=dat_train, ox ~  temp + (temp|ge))
+fit_lmer2 <- lmer(data=dat_train, ox ~  temp * measurement + (temp|ge))
 summary(fit_lmer2)
 # Predict on training set
 train_preds  <- merTools::predictInterval(fit_lmer2, newdata = dat_train, n.sims = 100, returnSims = TRUE, seed = 657, level = 0.9) %>%
@@ -253,20 +255,22 @@ boxplot(combined_dat$fit~combined_dat$group)
 
 # rescale the output coefficients from the model
 coef_R <- b1S
-coef_R   <- rescale.coefs(b1S, as.numeric(c(rep(m[1], nb_ge+nb_ha), rep(m[2], nb_ge+nb_ha))),
-                          as.numeric(c(rep(s[1], nb_ge+nb_ha), rep(s[2], nb_ge + nb_ha))), repnb=1, coefname_=coefname)
-coef_R_m <- b1S_m$ge
-coef_R_m <- rescale.coefs(b1S_m, as.numeric(c(m[1], m[2])),
-                          as.numeric(c(s[1], s[2])), repnb=nb_ge, coefname=coefname_m)
+coef_R <- coef_R[-grep("measurementroutine", names(coef_R))]
+coef_R <- rescale.coefs(coef_R, as.numeric(c(rep(m[1], nb_ge+nb_ha), rep(m[2], nb_ge+nb_ha))),
+                          as.numeric(c(rep(s[1], nb_ge+nb_ha), rep(s[2], nb_ge + nb_ha))), repnb=1, coefname_=names(coef_R))
+coef_R_m <- NULL
+coef_R_m$ge <- b1S_m$ge[,-c(3:4)]
+coef_R_m <- rescale.coefs(beta = coef_R_m, mu = as.numeric(c(m[1], m[2])),
+                              sigma = as.numeric(c(s[1], s[2])), repnb=nb_ge, coefname=c("(Intercept)", "temp"))
 all.equal(b1,coef_R) # compare the outputs from coefficient of scaled and unscaled model. If TRUE = perfect.
-#all.equal(b1S_m,coef_R_m) # same but won't work because lmm with unscaled data isn't running
+#all.equal(b1_m,coef_R_m) # same but won't work because lmm with unscaled data isn't running
 
 
 
 
 # reassamble the coefficients from lmm
 coef_R_m <- as.data.frame(coef_R_m)
-colnames(coef_R_m) <- colnames(b1S_m$ge)
+colnames(coef_R_m) <- colnames(b1S_m$ge)[1:2]
 rownames(coef_R_m) <- rownames(b1S_m$ge)
 coef_R_m # check the values
 
@@ -331,7 +335,7 @@ for (i  in  seq_along(spetot$Species)){ # in 249){ #
       if(!is.na(coef)){gen    <-coef}
       else {gen <- 0}}
     else {
-      if (genspe == "geAcipenser") {gen <- 0}
+      if (genspe == names(coeftot[1])) {gen <- 0}
       else {gen       <- NA}
     }
     # coef <- coeftot[which(coefname == demerspe)]
@@ -347,7 +351,7 @@ for (i  in  seq_along(spetot$Species)){ # in 249){ #
       if(!is.na(coef)){temgen    <-coef}
       else {temgen <- 0}}
     else {
-      if (genspe == "geAcipenser") {temgen <- 0}
+      if (genspe == names(coeftot[1])) {temgen <- 0}
       else {temgen       <- NA}
     }
     # coef <- coeftot[which(coefname == paste0(demerspe, ":", "temp"))]
@@ -368,8 +372,6 @@ for (i  in  seq_along(spetot$Species)){ # in 249){ #
   
 }
 spetotm <- cbind(spetot, c_m, eps_m)
-
-
 
 
 # Second : the mixed linear model
@@ -416,6 +418,10 @@ for (i  in seq_along(spetot$Species)){ # in 249){ #
 }
 spetotmm <- cbind(spetot, c_mm, eps_mm)
 head(spetotmm)
+
+
+ID <- which(!is.na(spetotmm$c_mm))
+data.frame(spetotmm$c_mm[ID], spetotmm$eps_mm[ID], spetotm$c_m[ID], spetotm$eps_m[ID])
 
 datajoined <- left_join(oxdata, spetotmm, by="Species")
 write.csv(datajoined, paste0(pathoutput, "/dataset_oxygen_completed.csv"))

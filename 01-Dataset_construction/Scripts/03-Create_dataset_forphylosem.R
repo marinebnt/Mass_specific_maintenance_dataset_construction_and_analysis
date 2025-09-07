@@ -381,7 +381,7 @@ sum(duplicated(spemerged$SpecCode))
 dataset$Loo[which(dataset[, c("Loo")]<dataset[, c("Lm")], arr.ind = T)]           <- NA
 dataset$tmax[which(dataset[, c("tmax")]<dataset[, c("tm")],)] <- NA
 #remove species that are not in the class Teleostean or Chondrychtian
-dataset <- dataset[which(dataset$Class %in% c("Elasmobranchii", "Teleostei")),]
+dataset <- dataset[which(dataset$Class %in% c("Teleostei")),]
 ##############################################################################################
 
 

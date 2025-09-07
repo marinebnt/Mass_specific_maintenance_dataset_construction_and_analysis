@@ -56,29 +56,51 @@ pdf(paste0(path_plots, "/ternary_plot_tot_time.pdf"))
 print(plot1)
 dev.off()
 
+
+
+
+
+
 # ternary plot with example species
-cmstd <- dataphylo$c_m
-alpha <- AAAtot$alphas
+cmstd <- dataphylo$c_m # standardized c_m values
+alpha <- AAAtot$alphas # position of each species in the ternary plot. Same order as the original dataset (dataphylo). 
+                       # To know which archetype is which, have a look at the order of the AAAtot$archetype
 df <- cbind(alpha, cmstd)
+df_mean <- aggregate(df[, 1:3], list(dataphylo$Order), mean)
+# df_mean the family with the highest average value on each archetype is the most representative one of the archetype
+maxAA1 <- df_mean$Group.1[which.max(df_mean$V1)] # unknown family, I prefere to pick another one with df_mean$Group.1[which(df_mean$V1>0.7)]
+maxAA1 <-df_mean$Group.1[which(df_mean$V1>0.6)][4] # unknown family, I prefere to pick another one with df_mean$Group.1[which(df_mean$V1>0.7)]
+# maxAA1 <- "Psettodidae" # pleuronectiformes
+maxAA2 <- df_mean$Group.1[which.max(df_mean$V2)]
+maxAA2 <- df_mean$Group.1[which(df_mean$V2>0.4)][1]
+# maxAA2 <- "Spratelloididae" 
+maxAA3 <- df_mean$Group.1[which.max(df_mean$V3)]
+# maxAA3 <- "Cetorhinidae" 
 
 a1 = AAAtot
 genecolour <- rep('NA', nrow(df))
 genecolour2 <- rep('NA', nrow(df))
 
-genecolour[dataphylo$Family == 'Gobiidae'] <- 'brown3' #Gobiidae #Poeciliidae
+
+
+# genecolour[dataphylo$Family == 'Gobiidae'] <- 'brown3' #Gobiidae #Poeciliidae
+genecolour[dataphylo$Order == maxAA2 ] <- 'brown3' #Gobiidae #Poeciliidae
 # genecolour[dataphylo$Family == 'Engraulidae'] <- 'brown3' #Gobiidae #Poeciliidae
-genecolour[dataphylo$Family == 'Mugilidae'] <- '#00b159' # Mugilidae # *** Labridae *** # Sparidae #Trichiuridae # Gadidae #Clupeidae # Salmonidae #Scombridae
-genecolour[dataphylo$Family == 'Sebastidae'] <- 'royalblue' #Squlidae #Ariidae
-genecolour2[dataphylo$Family == 'Blenniidae'] <- 'black'
-genecolour2[dataphylo$Family == 'Labridae'] <- 'black'
-genecolour2[dataphylo$Class == 'Elasmobranchii'] <- 'black'
+# genecolour[dataphylo$Family == 'Mugilidae'] <- '#00b159' # Mugilidae # *** Labridae *** # Sparidae #Trichiuridae # Gadidae #Clupeidae # Salmonidae #Scombridae
+# genecolour[dataphylo$Family == 'Psettodidae'] <- '#00b159' # Mugilidae # *** Labridae *** # Sparidae #Trichiuridae # Gadidae #Clupeidae # Salmonidae #Scombridae
+genecolour[dataphylo$Order == maxAA1] <- '#00b159' # Mugilidae # *** Labridae *** # Sparidae #Trichiuridae # Gadidae #Clupeidae # Salmonidae #Scombridae
+# genecolour[dataphylo$Family == 'Sebastidae'] <- 'royalblue' #Squlidae #Ariidae
+genecolour[dataphylo$Order == maxAA3] <- 'royalblue' #Squlidae #Ariidae
+# genecolour2[dataphylo$Family == 'Blenniidae'] <- 'black'
+# genecolour2[dataphylo$Family == 'Labridae'] <- 'black'
+# genecolour2[dataphylo$Class == 'Elasmobranchii'] <- 'black'
 
 genecolour_names <-c()
-genecolour_names[iopp] <- c("Gobiidae")
-genecolour_names[iper] <- c("Mugilidae")
-genecolour_names[ieq] <- c("Sebastidae")
+genecolour_names[iopp] <- maxAA2
+genecolour_names[iper] <-maxAA1
+genecolour_names[ieq] <- maxAA3
 
-colnames(df) <-  c("x", "y", "z", "d")
+colnames(df)[1:4] <-  c("x", "y", "z", "d")
 df <- as.data.frame(df)
 df$group <- genecolour
 constants_x <- c(1, 0.1, 0.05)
@@ -88,7 +110,7 @@ dfLabs <- data.frame(x = constants_x, y = constants_y, z = constants_z)
 
 plot <- ggtern(df,aes(x=x,y=y,z=z)) + 
   geom_point(colour = genecolour, size=2.5, alpha=0.5)+
-  theme_classic()+
+  # theme_classic()+
   labs(
     x = labelAA[1],       # Custom name for x-axis
     y = labelAA[2],       # Custom name for y-axis
@@ -114,7 +136,7 @@ dev.off()
 
 
 blank<-grid::grid.rect(gp=gpar(col="white"))
-arrangeGrob(plot, plot1, grid)
+# arrangeGrob(plot, plot1, grid)
 combined <- ggtern::grid.arrange(plot, plot1)
 ggsave(combined, file=paste0(path_plots, "/ternary_combined_time.pdf"), width=7 , height=9)
 

@@ -12,7 +12,7 @@
 paths_dir <-  paste0("01-Dataset_construction/Outputs/phylosem")
 list_dir <- list.dirs(paths_dir, recursive = F, full.names = F)
 
-for (dir in list_dir[c(6)]){
+for (dir in list_dir){
   
   # What is the chosen model out of the tested SEM models ? 
   chosenSEM = c("TLstdmeca")
@@ -55,13 +55,13 @@ for (dir in list_dir[c(6)]){
   # load R functions producing the plots
   path_func <- "02-Analysis/Scripts/functions/"
   functions <- list.files(path_func)
-  load(paste0("01-Dataset_construction/Outputs/phylosem/", model, "/imageworkspaceEND.RData")) #data needed for cross validation
+  load(paste0("01-Dataset_construction/Outputs/phylosem/", model, "/imageworkspace_phylosem.RData")) #data needed for cross validation  #imageworkspaceEND.RData
   
   
   ######## What input and output folder ? 
   traits = c("Age.mat", "Age.max", "Mortality", "K") # time related traits
   OUTPUT = paste0("Outputs/", model)
-  OUTPUT_phylo = paste0("Outputs/phylosem/", model)
+  OUTPUT_phylo = paste0("Outputs/phylosem/", model, "/phylosem")
   path_phylosem_out <- paste0(getwd(), "/01-Dataset_construction/", OUTPUT_phylo)
   path_plots <- paste0(getwd(), "/02-Analysis/", OUTPUT,"/plots")
   path_CV <- paste0(getwd(), "/01-Dataset_construction/", OUTPUT_phylo)
@@ -93,7 +93,7 @@ for (dir in list_dir[c(6)]){
   # path_phylosem_out <- paste0(getwd(), "/02-Analysis/", OUTPUT)
   # path_plots <- paste0(getwd(), "/02-Analysis/", OUTPUT,"/plots")
   
-  # loop the plots
+  ## loop the plots
   for (func in functions){
     if (func == c("plot_AA_elbow_criterion.R")){next} # this is really long, run only if needed
     path_CV <- paste0(getwd(), "/01-Dataset_construction/", OUTPUT_phylo)
@@ -108,5 +108,5 @@ for (dir in list_dir[c(6)]){
     else {
       next
     }
-  }
+  # }
 }

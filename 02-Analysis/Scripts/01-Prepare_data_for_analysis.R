@@ -71,42 +71,42 @@ dataacp   <- data.frame(dataphylo)
 
 #********
 # SELECTION CRITERIA = Elasmo
-dataphylo_noelasmo <- dataphylo[-which(dataphylo$Class %in% c("Elasmobranchii")),]
-dataplot_noelasmo  <- data.frame(dataphylo_noelasmo$K, dataphylo_noelasmo$Mortality, dataphylo_noelasmo$Temperature,
-                                 dataphylo_noelasmo[, -which(colnames(dataphylo_noelasmo) %in%
-                                                               c("Class", "Order", "Family", "Genus", "Species", "SpecCodeode", "c_m", "T"))])
-dataacp_noelasmo   <- data.frame(dataphylo_noelasmo)
+# dataphylo_noelasmo <- dataphylo[-which(dataphylo$Class %in% c("Elasmobranchii")),]
+# dataplot_noelasmo  <- data.frame(dataphylo_noelasmo$K, dataphylo_noelasmo$Mortality, dataphylo_noelasmo$Temperature,
+#                                  dataphylo_noelasmo[, -which(colnames(dataphylo_noelasmo) %in%
+#                                                                c("Class", "Order", "Family", "Genus", "Species", "SpecCodeode", "c_m", "T"))])
+# dataacp_noelasmo   <- data.frame(dataphylo_noelasmo)
 
 
 #*****
 # SELECTION CRITERIA = Teleo
-dataphylo_noteleo <- dataphylo[-which(dataphylo$Class %in% c("Teleostei")),]
-dataplot_noteleo  <- data.frame(dataphylo_noteleo$K, dataphylo_noteleo$Mortality, dataphylo_noteleo$Temperature,
-                                dataphylo_noteleo[, -which(colnames(dataphylo_noteleo) %in%
-                                                             c("Class", "Order", "Family", "Genus", "Species", "SpecCodeode", "c_m", "T"))])
-dataacp_noteleo   <- data.frame(dataphylo_noteleo)
+# dataphylo_noteleo <- dataphylo[-which(dataphylo$Class %in% c("Teleostei")),]
+# dataplot_noteleo  <- data.frame(dataphylo_noteleo$K, dataphylo_noteleo$Mortality, dataphylo_noteleo$Temperature,
+#                                 dataphylo_noteleo[, -which(colnames(dataphylo_noteleo) %in%
+#                                                              c("Class", "Order", "Family", "Genus", "Species", "SpecCodeode", "c_m", "T"))])
+# dataacp_noteleo   <- data.frame(dataphylo_noteleo)
 
 
 #********
 # SELECTION CRITERIA = Teleo Pelagic
-dataphylo_noteleo_pela <- dataphylo[which(dataphylo$habitatpelagic > 0.5),]
-dataplot_noteleo_pela  <- data.frame(dataphylo_noteleo_pela$K, dataphylo_noteleo_pela$Mortality, dataphylo_noteleo_pela$Temperature,
-                                     dataphylo_noteleo_pela[, -which(colnames(dataphylo_noteleo_pela) %in%
-                                                                       c("Class", "Order", "Family", "Genus", "Species", "SpecCodeode", "c_m", "T"))])
-dataacp_noteleo_pela   <- data.frame(dataphylo_noteleo_pela)
+# dataphylo_noteleo_pela <- dataphylo[which(dataphylo$habitatpelagic > 0.5),]
+# dataplot_noteleo_pela  <- data.frame(dataphylo_noteleo_pela$K, dataphylo_noteleo_pela$Mortality, dataphylo_noteleo_pela$Temperature,
+#                                      dataphylo_noteleo_pela[, -which(colnames(dataphylo_noteleo_pela) %in%
+#                                                                        c("Class", "Order", "Family", "Genus", "Species", "SpecCodeode", "c_m", "T"))])
+# dataacp_noteleo_pela   <- data.frame(dataphylo_noteleo_pela)
 
 
 ############################## RUN Archetypal analysis ##########################
 
 
-veccol_teleo <- c("royalblue","darkgreen","tomato")
-veccol_elasmo <- c("orange", "purple4", "pink")
+# veccol_teleo <- c("royalblue","darkgreen","tomato")
+# veccol_elasmo <- c("orange", "purple4", "pink")
 veccol_tot <- c("royalblue", "tomato", "darkgreen")
 
 
 vecAA_teleo <- c("Per", "Opp", "Equ")
-vecAA_elasmo <- c("+ Age max", "Pelagic", "Demersal")
-vecAA_elasmo_pela <- c("+K", "Pelagic", "-fec/+demer")
+# vecAA_elasmo <- c("+ Age max", "Pelagic", "Demersal")
+# vecAA_elasmo_pela <- c("+K", "Pelagic", "-fec/+demer")
 
 vecAA_eq <- c("a", "b", "c")
 kmax=3
@@ -114,8 +114,8 @@ kmax=3
 
 
 
-AAteleo <- runAA(dataplot_noelasmo, traits, kmax)
-AAelasmo <- runAA(dataplot_noteleo, traits, kmax)
+# AAteleo <- runAA(dataplot_noelasmo, traits, kmax)
+# AAelasmo <- runAA(dataplot_noteleo, traits, kmax)
 AAtot <- runAA(dataplot, traits, kmax)
 
 
@@ -125,8 +125,6 @@ AAtot <- runAA(dataplot, traits, kmax)
 
 save.image(paste0(path_analysis_out, "/IMAGE_AA_FOR_ANALYSIS.RData"))
 
-save(AAteleo, AAelasmo, AAtot, dataphylo, dataacp, dataplot, datagenus, 
-             dataplot_noelasmo, dataacp_noelasmo, dataphylo_noelasmo,
-             dataplot_noteleo, dataacp_noteleo, dataphylo_noteleo, 
+save(AAtot, dataphylo, dataacp, dataplot, datagenus, 
           file=paste0(path_analysis_out, "/IMAGE_AA_CONSTRUCTED.RData"))
 
