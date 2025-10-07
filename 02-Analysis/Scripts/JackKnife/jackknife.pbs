@@ -1,0 +1,45 @@
+#!/bin/bash
+#PBS -N jackknife1
+#PBS -l ncpus=1
+#PBS -l mem=150g
+#PBS -l walltime=60:00:00
+#PBS -J 1-56            # <- change 100 to your N (number of groups)
+#PBS -o /path/to/logs/jack_%A_%a.out
+#PBS -e /path/to/logs/jack_%A_%a.err
+
+set -euo pipefail
+
+# Load R (or activate conda env that has R)
+# module load R/4.2.0         # example, adjust to your cluster
+#. /appli/anaconda/latest/etc/profile.d/conda.sh
+#conda activate r-env         # or your conda env name that has required R packages
+
+
+source /usr/share/Modules/3.2.10/init/bash
+setenv R_LIBS_USER /home1/datawork/mbeneat/libs/R
+module load R
+
+
+
+# Working dirs
+SCRATCHDIR=SCRATCH/jackknife/$PBS_JOBID/$PBS_ARRAY_INDEX
+mkdir -p "$SCRATCHDIR"
+cd "$SCRATCHDIR"
+
+# Copy data & scripts to scratch for faster I/O (optional)
+# adjust source paths
+cp $HOME/PHYLOSEM/alldatasets/*     "$SCRATCHDIR/"
+cp $HOME/PHYLOSEM/alldatasets/jack_list.rds  "$SCRATCHDIR/"
+cp $HOME/PHYLOSEM/jackknife.R "$SCRATCHDIR/"
+
+# Run the R worker
+Rscript jackknife_worker.R datasets.csv jack_list.rds results || exit 1
+
+# copy results back (atomic)
+mkdir -p $SCRATCH/jackknife/$PBS_JOBID
+cp -a results/* $SCRATCH/jackknife/$PBS_JOBID/
+
+# cleanup (optional)
+# rm -rf "$SCRATCHDIR"
+
+exit 0
