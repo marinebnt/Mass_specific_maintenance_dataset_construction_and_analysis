@@ -38,6 +38,20 @@ library(rstatix)
 library(ggpubr)
 library(outliers)
 library(grid)
+library(akima)
+library(metR)
+library(htmlwidgets)
+library(plotly)
+library(lme4)
+library(broom.mixed)
+library(tidyr)
+library(performance)  # for R²
+library(partR2)
+library(car)
+library(merDeriv)
+
+
+
 
 
 suppressWarnings(RNGversion("3.5.0"))
@@ -61,7 +75,7 @@ ratioTOtrait <- function(ratio, operator, IS_OPERATOR_Loo, IS_LOG_M){
       trait <- ratio + operator
     }
     else {
-      operator[which(operator<0)] <-0.01
+      # operator[which(operator<0)] <-0.01
       trait <- ratio - operator
     }
   }
@@ -306,12 +320,12 @@ plotPCA_knownc_m <- function(veccol, vecAA, PCA){
 }
 
 
-treeforpPCA <- function(dataext){
-  dataext$SuperClass <- rep("Fish", length(dataext$Species))
-  nb         <- dim(dataext)[1]
+treeforpPCA <- function(dataset){
+  dataset$SuperClass <- rep("Fish", length(dataset$Species))
+  nb         <- dim(dataset)[1]
   frm        = ~SuperClass/Class/Order/Family/Genus/Species
   phylo      <- c()
-  phylo      = as.data.frame(dataext[which(names(dataext) %in% c("SuperClass", "Class", "Order", "Family", "Genus", "Species"))], stringsAsFactors = TRUE)
+  phylo      = as.data.frame(dataset[which(names(dataset) %in% c("SuperClass", "Class", "Order", "Family", "Genus", "Species"))], stringsAsFactors = TRUE)
   phylo$Species        = stringr::str_replace(phylo$Species, " ", "_")
   phylo      <- mutate_if(phylo, is.character, as.factor)
   phylo_tree_med             = as.phylo(x = frm, data = phylo, collapse = FALSE, use.labels = TRUE)
@@ -333,7 +347,10 @@ treeforpPCA <- function(dataext){
 # PLOTS FOR CROSS VALIDATION (CV)
 
 # function to create a dataset with the cross validation outputs : data expected/data infered by phylosem/exected-infered
-checkphylosemdata <- function(fileID, semID, trait, name, sample, maxCV){
+checkphylosemdata <- function(fileID, semID, trait, name, ss_sample, dataset_CV){
+  
+  data_cv_c_m <- dataset$Genus[-which(is.na(dataset$c_m))]
+  genus <- table(data_cv_c_m)
   
   if (name != "all"){
     traitname = trait
@@ -341,40 +358,28 @@ checkphylosemdata <- function(fileID, semID, trait, name, sample, maxCV){
   }
   if (name == "all") {    
     traittotest = trait
-    traitname = c("TOT")	
+    traitname = c("")	
   }
   
-  whichNA   <- sample[floor((1+floor(maxCV)*(fileID-1))):(floor(maxCV)*fileID)]
-  if (maxCV!=floor(maxCV) & fileID==nbCV){whichNA<-c(whichNA, sample[length(sample)])}
+  whichnotNA <-  ss_sample
+  OBSERVED   <- dataset_CV[-which(rownames(dataset_CV) %in% stringr::str_replace(whichnotNA, " ", "_")),]
+  INFERED    <- read.csv(paste0(path_phylosem_CV, "/output", fileID, "_", modelname[semID], "psemFINAL", name, traitname, ".csv"), row.names = c(2))
+  INFERED    <- INFERED[which(rownames(INFERED) %in% rownames(OBSERVED)),]
   
-  rest      <- dataext_traits[whichNA,]
-  data      <- read.csv(paste0(path_phylosem_out, "/output", fileID, "_", modelname[semID], "psemFINAL", name, traitname, ".csv"))
   
-  # change units of the invariants traits (Beverton and Holt)
-  if(traittotest == "tm"){
-    rest$tm <- rest$tm - rest$M
-    data$tm <- data$tm - data$M
-  }
-  if(traittotest == "Lm"){
-    rest$Lm <- rest$Lm + rest$Loo
-    data$Lm <- data$Lm + data$Loo
-  }
+  OBSERVED$Lm <- ratioTOtrait(OBSERVED$Lm, OBSERVED$Loo, IS_OPERATOR_Loo=TRUE, IS_LOG_M=IS_LOG_M)
+  INFERED$Lm <- ratioTOtrait(INFERED$Lm, INFERED$Loo, IS_OPERATOR_Loo=TRUE, IS_LOG_M=IS_LOG_M)
+  OBSERVED$tm <- ratioTOtrait(OBSERVED$tm, OBSERVED$M, IS_OPERATOR_Loo=FALSE, IS_LOG_M=IS_LOG_M)
+  INFERED$tm <- ratioTOtrait(INFERED$tm, INFERED$M, IS_OPERATOR_Loo=FALSE, IS_LOG_M=IS_LOG_M)
   
-  #identify data to compare
-  IDnonarest <- which(!is.na(rest[, traittotest]))
-  species    <- rownames(rest[IDnonarest,])
-  IDphylosem <- which(data$label %in% species)
-  
+
   #extract data
-  dataphylosem <- data[IDphylosem, c("label", traittotest)]
-  names(dataphylosem) <- c("label", paste0(traittotest, "phylosem"))
-  datafishbase <- rest[IDnonarest, c(traittotest) ]
-  datafishbase <- cbind(datafishbase, rownames(rest[IDnonarest,]))
-  colnames(datafishbase) <- c(traittotest, "label")
+  INFERED <- data.frame(INFERED[, traittotest], rownames(INFERED))
+  names(INFERED) <- c(paste0(traittotest, "phylosem"), "label")
+  OBSERVED <- data.frame(OBSERVED[, c(traittotest) ], rownames(OBSERVED))
+  colnames(OBSERVED) <- c(traittotest, "label")
   
-  dataphylosemextract <- dataphylosem[which(dataphylosem$label %in% datafishbase[,2]),]
-  
-  datacompare  <- full_join(dataphylosemextract, as.data.frame(datafishbase), by="label")
+  datacompare  <- full_join(INFERED, OBSERVED)
   datacompare[,traittotest] <- as.numeric(datacompare[,traittotest])
   
   #create comparaison column
@@ -388,7 +393,7 @@ checkphylosemdata <- function(fileID, semID, trait, name, sample, maxCV){
 
 
 
-plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var, plot_layout=plt){
+plot_checkphylosemdata <- function(semID, trait, name, sample, dataset_CV, names_var, plot_layout=plt){
   
   for (sem in semID){
     cat("\n---------> sem", sem)
@@ -400,8 +405,9 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       plotid = plotid+1
       names_var_i <- names_var[plotid]
       cat("\n---------> trait", j)
-      if(length(sample) == length(trait)) {k=k+1}
-      else {k=1}
+      if(length(sample) == length(trait)) {
+        k=k+1
+      }else {k=1}
       label    <- c()
       infered  <- c()
       expected <- c()
@@ -409,13 +415,28 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       
         for (i in 1:nbCV){
           cat("\n---------> CV", i)
-          toterror <- checkphylosemdata(fileID=i, semID=sem, trait=j, name=name, sample=sample[[k]], maxCV=maxCV[[k]])
-          label   <- c(label, toterror[,1])
-          infered <- c(infered, toterror[,2])
-          expected<- c(expected, as.numeric(toterror[,3]))
-          errorpercent   <- c(errorpercent, toterror[,4])
+          ss_sample = rownames(rsample::analysis(sample$splits[[i]]))
+          if (name=="c_m"){
+            data_Genus   <- dataset[-which(is.na(dataset[,j])), ]
+            genus_counts <- table(data_Genus$Genus)
+            genus        <- rsample::analysis(sample$splits[[i]])$Var1
+            ss_sample    <- data_Genus$Species[which(data_Genus$Genus %in% genus)]
+          }
+          toterror <- checkphylosemdata(fileID=i, semID=sem, trait=j, name=name, ss_sample=ss_sample, dataset_CV=dataset_CV)
+          if(length(which(is.na(toterror$c_m)))>0) {toterror <- toterror[-which(is.na(toterror$c_m)), ]}
+          label   <- c(label, toterror[,"label"])
+          infered <- c(infered, toterror[,paste0(j, "phylosem")])
+          expected<- c(expected, as.numeric(toterror[,j]))
+          errorpercent   <- c(errorpercent, toterror[,paste0(j, "errorpercent")])
         }
         
+        if (any(is.na(expected))) {
+          label <- label[-which(is.na(expected))]
+          errorpercent <- errorpercent[-which(is.na(expected))]
+          infered <- infered[-which(is.na(expected))]
+          expected <- expected[-which(is.na(expected))]
+        }
+      
         # http://r-statistics.co/Outlier-Treatment-With-R.html
         # identifying outliers of the dataset to mark them clearly on the plots
         dataframe_outliers <- data.frame(infered, expected)
@@ -467,7 +488,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       # Qualitative traits
       if (sum(dataseterrorE$expected %in% c(1,0,NA))==length(dataseterrorE$expected)){
         plt = ggplot(dataseterrorE, aes(d = expected, m = infered)) + geom_roc(n.cuts = 0) + 
-          ggtitle(paste0(names_var_i, "\nAUC =", AUC, "%"))+
+          ggtitle(paste0(names_var_i, "\nAUC =", AUC, "%"))+ #, "\nPoint number= ", length(infered)))+
           geom_abline (slope=1, intercept = 0, linetype = "dashed", color="Red")+
           theme_classic()+
           theme(axis.text.y = element_text(size = 9),
@@ -490,7 +511,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
             plot.title = element_text(size = 12),
             axis.text.y = element_text(size = 12),
             axis.text.x = element_text(size = 12)) + 
-          ggtitle(paste0(names_var_i, paste0("\nPVE=", label_percent()(PVEe), "\nSlope=", round(slope,3)))) +
+          ggtitle(paste0(names_var_i, paste0("\nPVE=", label_percent()(PVEe), "\nSlope=", round(slope,3))))+ #, "\nPoint number= ", length(infered)))) +
           scale_color_identity(name = "Model fit",
                                breaks = c("red", "blue"),
                                labels = c("x=y", "Loess"),
@@ -502,15 +523,15 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       if(!(sum(dataseterrorE$expected %in% c(1,0,NA))==length(dataseterrorE$expected)) && !(trait == "c_m")) {
         dataseterrorE$LineType <- factor("LOESS")
         plt <- ggplot(dataseterrorE, aes(y=`infered`, x=`expected`)) +
-          geom_point(pch=21, alpha=0.5)+ 
-          geom_abline(slope = 1, intercept = 0, aes(color="red"), color="red", linetype = "dashed", lwd = 1.5)  +
-          geom_smooth(aes(color = "blue"), method = "loess") +
+          geom_point(pch=17, colors="black", alpha=0.5)+ 
+          geom_abline(slope = 1, intercept = 0, aes(color="red"), color="red", linetype = "dashed", lwd = 1, alpha= 0.5)  +
+          geom_smooth(aes(color = "blue"), method = "loess", linewidth=0.7, alpha=0.5) +
           theme_classic()+
           theme(
             plot.title = element_text(size=12),
             axis.text.y = element_text(size = 9),
             axis.text.x = element_text(size = 9))+
-          ggtitle(paste0(names_var_i, paste0("\nPVE=", label_percent()(PVEe))))+
+          ggtitle(paste0(names_var_i, paste0("\nPVE=", label_percent()(PVEe))))+ #, "\nPoint number= ", length(infered))))+
           scale_color_identity(name = "Model fit",
                                breaks = c("red", "blue"),
                                labels = c("x=y", "Loess"),
@@ -525,7 +546,7 @@ plot_checkphylosemdata <- function(semID, trait, name, sample, maxCV, names_var,
       
       myplotlist[[plotid]] <- plt
       
-      grDevices::pdf(file=paste0(path_CV,  "/boxplot/", modelname[sem], name, j, "boxplotCV.pdf"))
+      grDevices::pdf(file=paste0(path_CV,  "/", modelname[sem], name, j, "boxplotCV.pdf"))
       plt2 <- ggplot(dataseterrorE, aes(y=errorpercent)) + geom_boxplot()
       print(plt2)
       dev.off()

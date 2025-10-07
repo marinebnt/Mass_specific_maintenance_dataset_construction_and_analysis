@@ -1,7 +1,7 @@
 #* marine beneat
 #* for the paper : need to summarize the linear model into a table. 
 
-load(file = "01-Dataset_construction/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/LMER.RData")
+load(file = "01-Dataset_construction/Outputs/dataset_creation_outputGRAVEL/dataset_for_phylosem_NOUNITCV/IMAGELOG.RData")
 
 model <- lmm_ox_S
 

@@ -25,3 +25,6 @@ TestResults.xml
 .Rproj.user
 *.Rproj.user
 .Rprojet.user/*
+*.tree
+*/old
+*/old/*

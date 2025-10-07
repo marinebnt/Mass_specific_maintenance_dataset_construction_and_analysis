@@ -6,15 +6,15 @@ library(archetypes)
 
 #############
 model <- "TLstdmeca"
-OUTPUT <- paste0("Outputs/", model)
+OUTPUT <- paste0("Outputs_FINAL/", model)
 path_plots <- paste0(getwd(), "/02-Analysis/", OUTPUT,"/plots")
 #############
 
-# produce the data to plot
-# beta_iv1 = dataplot[, which(colnames(dataplot) %in%  traits)]
-# repAA_tot<-stepArchetypes(data=beta_iv1, k=1:6, verbose=TRUE, nrep=30) # this is long to run
+## produce the data to plot
+beta_iv1 = dataplot[, which(colnames(dataplot) %in%  traits)]
+repAA_tot<-stepArchetypes(data=beta_iv1, k=1:6, verbose=TRUE, nrep=30) # this is long to run
 
-# save.image(file=paste0(path_plots, "/ELBOW_tot.RData"))
+save.image(file=paste0(path_plots, "/ELBOW_tot.RData"))
 
 # plot
 load(paste0(path_plots, "/ELBOW_tot.RData"))

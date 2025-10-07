@@ -1,4 +1,4 @@
-Marine Beneat et al. 
+Beneat et al. 2026
 See the corresponding supplementary material for more details
 
 ### Traits units ###
@@ -7,9 +7,9 @@ label: species name
 TLDiet: trophic level
 Temperature: temperature in degree celcius 
 
-habitatbenthopelagic: binary: species habitat is benthopelagic : yes/no
-habitatdemersal: binary: species habitat is demersal: yes/no
-habitatpelagic: binary: species habitat is demersal: yes/no
+habitatbenthopelagic: binomial: species habitat is benthopelagic : yes/no
+habitatdemersal: binomial: species habitat is demersal: yes/no
+habitatpelagic: binomial: species habitat is demersal: yes/no
 
 c_m: log-transformed resting metabolic rate (RMR)
 tm: log-transformed maturation age

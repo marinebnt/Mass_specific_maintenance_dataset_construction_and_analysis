@@ -55,17 +55,18 @@ opp_pic <- get_phylopic(uuid = opp_uuid)
 # preparing the data for the Archetypes identifications
 datatoadd <- matrixAAinPCA[,AXESTOREPRESENT]
 rownames(datatoadd)<- NULL
-labels <- labelAA
-datatoadd <- data_frame(x=datatoadd[,1], y=datatoadd[,2], z=labels, pchvec=pchvec)
-datatoadd$Archetypes <- labelAA
-datatoadd$Archetypes <- as.factor(labelAA)
-datatoadd$colAA <- colAA
+labels <- labelAA[1:nrow(AAtot$archetypes)]
+datatoadd <- data_frame(x=datatoadd[,1], y=datatoadd[,2], z=labels, pchvec=pchvec[1:nrow(AAtot$archetypes)])
+datatoadd$Archetypes <- labels
+datatoadd$Archetypes <- as.factor(labels)
+datatoadd$colAA <- colAA[1:nrow(AAtot$archetypes)]
 order_table <- order(datatoadd$Archetypes)
-order_table <- c(which((factor(labelAA)) == "Fast"),which((factor(labelAA)) == "Slow"),which((factor(labelAA)) == "Intermediate"))
+order_table <- c(which((factor(labelAA)) == "Fast"),which((factor(labelAA)) == "Slow"),which((factor(labelAA)) == "Intermediate"))[1:nrow(AAtot$archetypes)]
 datatoadd <- datatoadd[order_table,]
 order_table <- c(which(levels(factor(labelAA)) == "Fast"),which(levels(factor(labelAA)) == "Slow"),which(levels(factor(labelAA)) == "Intermediate"))
-datatoadd$Archetypes <- factor(datatoadd$Archetypes, levels = levels(datatoadd$Archetypes)[order_table])
-
+if(length(labels)>2){datatoadd$Archetypes <- factor(datatoadd$Archetypes, levels = levels(datatoadd$Archetypes)[order_table])}
+datatoadd$Archetypes <- factor(datatoadd$Archetypes,
+                               levels = c("Fast", "Slow", "Intermediate"))
 
 # prepare the data for the arrows indentification
 rownames(res.pca$rotation) <- traits
@@ -133,3 +134,85 @@ dev.off()
 
 
 save(plot, file=paste0(path_plots, "/TOT_PCA_time.RData"))       
+
+
+
+
+## Identify which species have the highest RMR0 according to the PCA
+# First : project species data points in PCA
+PCA <- res.pca$rotation
+numbPCA2 = 2
+numbPCA1 = 1
+dataacp_sp <- dataacp[[1]]
+dataacp_sp$PC2 <- PCA[, numbPCA2] # indexing the first column
+dataacp_sp$PC1 <- PCA[, numbPCA1]  # indexing the second column
+rotation_data <- PCA[, c(numbPCA1, numbPCA2)]
+colnames(rotation_data) <- c(paste0("PC", AXESTOREPRESENT[1]), paste0("PC", AXESTOREPRESENT[2]))
+speciespoints_in_PCA <- scale(as.data.frame(res.pca$x), c(0,0,0,0,0), FALSE) %*% PCA
+# eigenval <- get_eigenvalue(PCA)[c(numbPCA1, numbPCA2),"variance.percent"]
+# Second : identify species the furthest in the PCA axis 1 (=highest metabolic rate acc to PCA)
+range(speciespoints_in_PCA[,1])
+c <- dataphylo[which(speciespoints_in_PCA[,1]>2), ]
+table(c$Genus)
+
+
+# Define the mapping explicitly
+shape_map <- c(Fast = unique(datatoadd$pchvec[datatoadd$Archetypes=="Fast"]),
+               Slow = unique(datatoadd$pchvec[datatoadd$Archetypes=="Slow"]),
+               Intermediate = unique(datatoadd$pchvec[datatoadd$Archetypes=="Intermediate"]))
+
+fill_map <- c(Fast = unique(datatoadd$colAA[datatoadd$Archetypes=="Fast"]),
+              Slow = unique(datatoadd$colAA[datatoadd$Archetypes=="Slow"]),
+              Intermediate = unique(datatoadd$colAA[datatoadd$Archetypes=="Intermediate"]))
+
+# # plot to visualise specific species if needed
+res.pca$rotation[,2] <- -res.pca$rotation[,2] # reverse the direction of the second axis to be coherent with the other plots
+res.pca$x[,2] <- -res.pca$x[,2] # reverse the direction of the second axis to be coherent with the other plots
+# other possibilities : anchoa, spratelloides
+spratelloides <- fviz_pca_biplot(res.pca,
+                label = c("var"),
+                habillage = ,
+                # fill.ind = as.factor(dataphylo$Species),
+                col.ind=as.factor(dataphylo$Species),
+                select.ind = list(name = which(dataphylo$Genus %in% c("Encrasicholina"))),
+                pointshape=19,
+                arrowsize = 0.25,
+                col.var = "darkblue", repel= T)+
+  ggtitle(NULL)+
+  labs()+
+  theme_minimal()+
+  theme(text = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12))+
+  guides(shape="none", fill="none")+  
+  geom_point(data = as.data.frame(res.pca$x),
+          aes(x = PC1, y = PC2),
+          fill = "grey", colour="grey",
+          size = 3, pch=21, 
+          alpha=0.03)+
+  new_scale_fill()+
+  geom_point(
+    data = datatoadd,
+    aes(
+      x = x, 
+      y = y,
+      shape = Archetypes,       
+      fill = Archetypes         
+    ),
+    colour = "black",          
+    size = 6,
+    stroke = 1
+  ) +
+  scale_shape_manual(values = shape_map) +
+  scale_fill_manual(values  = fill_map)+
+  guides(
+    shape = guide_legend(override.aes = list(size = 4, colour = "black")),
+    fill  = guide_legend(override.aes = list(size = 4, colour = "black"))
+  )
+
+
+# save 
+pdf(file = paste0(path_plots, "/high_rmr0_sp.pdf"))
+print(spratelloides)
+dev.off()
+

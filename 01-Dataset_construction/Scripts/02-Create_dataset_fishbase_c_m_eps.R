@@ -16,6 +16,7 @@ library(grDevices)
 library(lme4)
 library(dplyr)
 library(ggpubr)
+library(tidyr)
 
 
 #####
@@ -57,7 +58,7 @@ ox$ox_div_weight_log <-  log(ox$OxygenCons/ox$weight_g_gamma)
 data_ox_fr           <- data.frame(ox$weight_g_gamma, ox$temp_inv_k,
                                    ox$ox_div_weight_log, ox$DemersPelag, ox$Genus, as.factor(ox$MetabolicLevel))
 colnames(data_ox_fr) <- c("weig", "temp", "ox", "hab", "ge", "measurement")
-data_ox_fr$measurement <- relevel(data_ox_fr$measurement, ref="standard")  # the reference metabolism is STANDARD = ROUTINE
+data_ox_fr$measurement <- relevel(data_ox_fr$measurement, ref="standard")  # the reference metabolism is STANDARD = RESTING
 
 
 # create a function that will unscale the data when it got scaled
@@ -142,6 +143,47 @@ b1S      <- coef(lm_ox_S)
 b1S_m    <- coef(lmm_ox_S)
 nb_ge <- length(table(data_ox_fr$ge))
 nb_ha <- 0
+
+
+
+########### 
+# OUTPUT TABLE OF THE SLOPE/INTERCEPT LMM
+##########
+re_vals <- tidy(lmm_ox_S, effects = "ran_vals") 
+# %>%
+#   pivot_wider(names_from = term, values_from = estimate)
+# head(re_vals)
+
+# estimates wide
+std.error_intercept <- re_vals$std.error[which(re_vals$term=="(Intercept)")]
+std.error_slope <- re_vals$std.error[which(re_vals$term=="temp")]
+# std.error_intercept[which(re_vals$term=="(Intercept)")] <- NA
+# std.error_slope <- std.error_intercept
+# std.error_slope[which(!is.na(std.error_slope))] <- re_vals$std.error[which(re_vals$term=="temp")]
+re_vals <- re_vals[,-which(colnames(re_vals) == c("std.error"))]
+estimates <- as.data.frame(re_vals) %>%
+  pivot_wider(names_from = term, values_from = estimate) 
+estimates$std.error_slope <- std.error_slope
+estimates$std.error_intercept <- std.error_intercept
+estimates <- estimates[, -which(colnames(estimates)%in%c("group", "effect")),]
+colnames(estimates)[3] <- c("Slope")
+
+# sds wide
+ses <- as.data.frame(se_vals)
+ses$level <- rownames(se_vals)
+ses <- ses %>% rename(`(Intercept)_sd` = `(Intercept)`, Days_sd = Days)
+
+# join
+final_tab <- estimates %>%
+  left_join(ses, by = "level") %>%
+  rename(intercept_estimate = `(Intercept)`,
+         slope_estimate = Days)
+
+head(final_tab)
+
+
+
+
 
 
 ############################
@@ -276,7 +318,7 @@ coef_R_m # check the values
 
 
 # save the outputs to produce the table for the paper
-save.image(file = "01-Dataset_construction/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/LMER.RData")
+save.image(file = paste0(pathoutput, "LMER.RData"))
 
 
 # plot(lmm_genOFF)
@@ -354,14 +396,6 @@ for (i  in  seq_along(spetot$Species)){ # in 249){ #
       if (genspe == names(coeftot[1])) {temgen <- 0}
       else {temgen       <- NA}
     }
-    # coef <- coeftot[which(coefname == paste0(demerspe, ":", "temp"))]
-    # if (length(which(coefname == paste0(demerspe,  ":", "temp")))>0) {
-    #   if(!is.na(coef)){temdemer    <-coef}
-    #   else {temdemer <- 0}}
-    # else {
-    #   if (demerspe == "habbenthopelagic") {temdemer <- 0}
-    #   else {temdemer       <- NA}
-    # }
     c_m[i]        <- intercept + gen #+ dem
     eps_m[i]      <- (temgen + tem + temdemer)*boltzmann
   }
@@ -398,10 +432,6 @@ for (i  in seq_along(spetot$Species)){ # in 249){ #
       ID  <- which(coef)
       gen <- coeftot$`(Intercept)`[ID]
       temp<- coeftot$temp[ID]
-      # if(demerspe=="habbenthopelagic"){dem = 0}
-      # else {dem <- coeftot[ID,demerspe]}
-      # if(demerspe=="habbenthopelagic"){temhab = 0}
-      # else {temhab <- coeftot[ID,paste0(demerspe, ":temp")]}
     }
     else {
       gen       <- NA
@@ -450,34 +480,35 @@ lines(lox, loy, col="red")
 abline(a=0, b=1)
 
 # plot the linear models residuals according to the genus
-genustohighlight_eps_m <- spetotm$Genus[which(abs(spetotm$eps_m)>4)]
-genustohighlight_c_m <- spetotm$Genus[which(abs(spetotm$c_m)>200)]
-#Anova(lmm_genOFF2)
-par(mfrow=c(2,1))
-dataframe_residlm<-data.frame(c(rep("lmm_genOFF", length(data_ox_fr$ge)),
-                                rep("lm_genOFF", length(data_ox_fr$ge))),
-                              c(resid(lmm_ox_S), resid(lm_ox_S)), 
-                              c(data_ox_fr$ge, data_ox_fr$ge))
-colnames(dataframe_residlm) <- c("ref", "lm", "genus")
-a <- ggplot(dataframe_residlm[which(dataframe_residlm$ref=="lm_genOFF"),], aes(x=genus, y=lm))+
-  geom_boxplot()+
-  geom_point(aes(col=(ifelse(dataframe_residlm[which(dataframe_residlm$ref=="lm_genOFF"),]$genus %in% genustohighlight_c_m, 
-                             "c_m",   ifelse(dataframe_residlm[which(dataframe_residlm$ref=="lm_genOFF"),]$genus  %in% genustohighlight_eps_m, 
-                                             "eps_m","not outlier")))))+
-  labs(title="residuals of the lm model", color = "Outliers of :")+ 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-b <- ggplot(dataframe_residlm[which(dataframe_residlm$ref=="lmm_genOFF"),], aes(x=genus, y=lm))+
-  geom_boxplot()+
-  geom_point(
-    aes(col=(ifelse(dataframe_residlm[which(dataframe_residlm$ref=="lmm_genOFF"),]$genus %in% genustohighlight_c_m, 
-                    "c_m",   ifelse(dataframe_residlm[which(dataframe_residlm$ref=="lmm_genOFF"),]$genus %in% genustohighlight_eps_m, 
-                                    "eps_m","not outlier")))))+
-  labs(title="residuals of the lmm model", color = "Outliers of :")+ 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
-d<-ggarrange(a, b, ncol = 1, nrow = 2, labels = "AUTO",  common.legend = TRUE, legend="right")
-if(!dir.exists(paste0(pathoutput, "/plot_02"))){dir.create(paste0(pathoutput, "/plot_02"), showWarnings = F)}
-ggsave(d, filename=paste0(pathoutput, "/plot_02/", "boxplot_genus_lm.jpg"), width=c(15), height =c(30))
+# genustohighlight_eps_m <- spetotm$Genus[which(abs(spetotm$eps_m)>4)]
+# genustohighlight_c_m <- spetotm$Genus[which(abs(spetotm$c_m)>200)]
+# #Anova(lmm_genOFF2)
+# par(mfrow=c(2,1))
+# ID_remove <- grep("measurement", names(coef(lm_ox_S)))
+# dataframe_residlm<-data.frame(c(rep("lmm_genOFF", length(data_ox_fr$ge)),
+#                                 rep("lm_genOFF", length(data_ox_fr$ge))),
+#                               c(resid(lmm_ox_S), resid(lm_ox_S)[-ID_remove]), 
+#                               c(data_ox_fr$ge, data_ox_fr$ge))
+# colnames(dataframe_residlm) <- c("ref", "lm", "genus")
+# a <- ggplot(dataframe_residlm[which(dataframe_residlm$ref=="lm_genOFF"),], aes(x=genus, y=lm))+
+#   geom_boxplot()+
+#   geom_point(aes(col=(ifelse(dataframe_residlm[which(dataframe_residlm$ref=="lm_genOFF"),]$genus %in% genustohighlight_c_m, 
+#                              "c_m",   ifelse(dataframe_residlm[which(dataframe_residlm$ref=="lm_genOFF"),]$genus  %in% genustohighlight_eps_m, 
+#                                              "eps_m","not outlier")))))+
+#   labs(title="residuals of the lm model", color = "Outliers of :")+ 
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+# b <- ggplot(dataframe_residlm[which(dataframe_residlm$ref=="lmm_genOFF"),], aes(x=genus, y=lm))+
+#   geom_boxplot()+
+#   geom_point(
+#     aes(col=(ifelse(dataframe_residlm[which(dataframe_residlm$ref=="lmm_genOFF"),]$genus %in% genustohighlight_c_m, 
+#                     "c_m",   ifelse(dataframe_residlm[which(dataframe_residlm$ref=="lmm_genOFF"),]$genus %in% genustohighlight_eps_m, 
+#                                     "eps_m","not outlier")))))+
+#   labs(title="residuals of the lmm model", color = "Outliers of :")+ 
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+# 
+# d<-ggarrange(a, b, ncol = 1, nrow = 2, labels = "AUTO",  common.legend = TRUE, legend="right")
+# if(!dir.exists(paste0(pathoutput, "/plot_02"))){dir.create(paste0(pathoutput, "/plot_02"), showWarnings = F)}
+# ggsave(d, filename=paste0(pathoutput, "/plot_02/", "boxplot_genus_lm.jpg"), width=c(15), height =c(30))
 
 
 
@@ -566,13 +597,8 @@ a <- which(!is.na(spetotm$c_m))
 ggplot(data=spetotm[a,], aes(x=eps_m, y=log(c_m), label=Genus, col=DemersPelag))+
   geom_point()+
   theme_classic()
-# +
-#   geom_label_repel() +
-#   theme_classic()
 ggplot(data=spetotm) +
   geom_point(aes(x=eps_m, y=log(c_m)), color=ifelse(spetot$Genus == "Oreochromis", 'red', 'black'))
-# ggplot(data=spetotmm) +
-#   geom_point(aes(x=eps_mm, y=c_mm, col=DemersPelag), color=ifelse(spetot$Genus == "Oreochromis", 'red', 'black'))
 ggplot(data=spetotm) +
   geom_point(aes(x=log(c_m), y=eps_m, col=DemersPelag))
 ggplot(data=spetotmm) +

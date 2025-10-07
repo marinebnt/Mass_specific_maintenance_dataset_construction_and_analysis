@@ -7,60 +7,65 @@
 semID=1
 
 
+p <- plot_checkphylosemdata(semID = semID, trait="c_m", name=nameCV[1],
+                            sample=samplec_mspe$sample,
+                            dataset_CV=samplec_mspe$dataset_for_CV, 
+                            names_var="log(RMR0) (on c_m only) ")
 p <- plot_checkphylosemdata(semID = semID, trait="c_m", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(RMR0)")
+                            sample=sampletot$sample,
+                            dataset_CV=sampletot$dataset_for_CV, 
+                            names_var="log(RMR0) (on all dataset) ")
 p2 <- plot_checkphylosemdata(semID, trait="tm", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Maturation age)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Maturation age)")
 p3 <- plot_checkphylosemdata(semID, trait="Lm", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Maturation length)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Maturation length)")
 p4 <- plot_checkphylosemdata(semID, trait="tmax", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Max age)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Max age)")
 p5 <- plot_checkphylosemdata(semID, trait="K", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(K)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(K)")
 ph1 <- plot_checkphylosemdata(semID, trait="habitatbenthopelagic", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="Benthopelagic")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="Benthopelagic")
 p6 <- plot_checkphylosemdata(semID, trait="Woo", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Infinity weight)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Infinity weight)")
 p1 <- plot_checkphylosemdata(semID, trait="Loo", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Infinity length)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Infinity length)")
 p7 <- plot_checkphylosemdata(semID, trait="M", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Mortality)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Mortality)")
 p8 <- plot_checkphylosemdata(semID, trait="TLDiet", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="Trophic level")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="Trophic level")
 p9 <- plot_checkphylosemdata(semID, trait="fecundity", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Fecundity)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Fecundity)")
 ph2 <- plot_checkphylosemdata(semID, trait="habitatdemersal", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="Demersal")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="Demersal")
 p10 <- plot_checkphylosemdata(semID, trait="Min_caudalpeduncle_depth", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Peduncle depth)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Peduncle depth)")
 p11 <- plot_checkphylosemdata(semID, trait="Lower_jaw_length", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Jaw length)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Jaw length)")
 p12 <- plot_checkphylosemdata(semID, trait="Max_body_depth", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Body depth)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Body depth)")
 p13 <- plot_checkphylosemdata(semID, trait="Max_body_width", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Body width)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Body width)")
 p14 <- plot_checkphylosemdata(semID, trait="Temperature", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="log(Temperature)")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="log(Temperature)")
 ph3<- plot_checkphylosemdata(semID, trait="habitatpelagic", name=nameCV[2],
-                       sample=list(sampletot$sample),
-                       maxCV=list(sampletot$maxCV), names_var="Pelagic ")
+                       sample=sampletot$sample,
+                       dataset_CV=sampletot$dataset_for_CV, names_var="Pelagic ")
 
 
 
@@ -91,9 +96,9 @@ dev.off()
 
 
 # CV of c_m alone
-p_c_m <- plot_checkphylosemdata(semID, trait="c_m", name=nameCV[1],
-                                sample=list(samplec_mc_m$sample),
-                                maxCV=list(samplec_mc_m$maxCV), names_var="log(RMR0) ")
+# p_c_m <- plot_checkphylosemdata(semID, trait="c_m", name=nameCV[1],
+                                # sample=samplec_mc_m$sample,
+                                # dataset_CV=samplec_mc_m$dataset_for_CV, names_var="log(RMR0) ")
 
 
 

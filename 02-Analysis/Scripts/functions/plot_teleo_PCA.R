@@ -61,7 +61,7 @@ mycol =  c("darkorchid4", "cyan3", "#4575b4", "#91bfdb", "#fee090", "#fc8d59","#
 plot <- fviz_pca_biplot(res.pca, axes = AXESTOREPRESENT,
                         label = c("none"),
                         habillage = , 
-                        col.ind = as.factor(round(dataacpPLOT$colACP, 2)), 
+                        col.ind = as.factor(round(dataacpPLOT$colACP, 2))p, 
                         arrowsize = 1.5, pointshape=19, labelsize = 5, alpha = 0.5,
                         col.var = "darkblue", repel= T)+
   geom_text_repel(data = as.data.frame(res.pca$rotation), 

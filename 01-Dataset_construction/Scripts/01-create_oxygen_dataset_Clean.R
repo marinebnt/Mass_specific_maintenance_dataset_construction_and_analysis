@@ -26,7 +26,7 @@ library(worrms)
 path <- paste0(getwd(), "/01-Dataset_construction/Scripts")
 pathoutput <- paste0(getwd(), "/01-Dataset_construction/Outputs/dataset_creation_output")
 pathoutputplot <- paste0("01-Dataset_construction/Outputs/dataset_creation_output/plot_01")
-
+dir.create(pathoutputplot, recursive = T)
 ##*************************
 ## TAXO DATA : organise + fill in ######
 ##*************************
@@ -77,6 +77,7 @@ dim(totspe)
 
 # keeping only useful variables
 totspe     <- totspe[, names(totspe) %in% c("SpecCode", "DemersPelag", "Saltwater", "Brack", names(taxo_tot))]
+totspe     <- totspe[-which(totspe$Genus %in% "Fundulus"),]
 
 ## fill the family name NAs
 fillNAs <- read.csv2(paste0(getwd(), "/01-Dataset_construction/Inputs/completerfishbase.csv"))
@@ -134,50 +135,64 @@ for (i in totspe$Family){
 
 # * about the units : 
 # * 
-# * Fishbase : selected routine + standard + NA metabolism
-# * Clark :    resting metabolism
-# * Ikeda :    routine metabolism
-# * Killen :   resting metabolism
+# * Wong 2021 :    resting metabolism # removed : included in Gravel 2024 already
+# * Fishbase :     selected routine + standard + NA metabolism
+# * Clark 2025 :   resting metabolism
+# * Ikeda 2016 :   routine metabolism
+# * Killen 2016b : resting metabolism
+# * Gravel 2024 :  resting metabolism
 # * 
+# * Wong :     Temperature(K) : measurement temperature -> conversion in °C :  -273,15
 # * Fishbase : Temperature (°C) : mean water temperature during the experiment
 # * Clark :    Temperature (°C) : experimental temperature
 # * Ikeda :    Temperature (°C) : in situ temperature
 # * Killen :   Temperature (°C) : experimental temperature
+# * Gravel :   Temperature (°C) : experimental temperature
 # * 
+# * Wong :     Weight (g) : measurement body mass -> conversion in kg : *10^-3
 # * Fishbase : Weight of the test animal (g) or the mean weight if many
 # individuals per experiment -> conversion in kg (*10^-3)
 # * Clark :    Weight (g) : wet body mass -> conversion in kg *10^-3
 # * Ikeda :    Weight (mg) : wet mass is being used here => needs to be
 # *10^-6 to be in kg
 # * Killen :   Weight (g) : wet body mass -> conversion in kg (*10^-3)
+# * Gravel :   Weight (g) : wet body mass -> conversion in kg (*10^-3)
 # * 
+# * Wong : Watt =>  Oxygen consumption mg O2 . h^-1
 # * Fishbase : Oxygen consumption (mg O2 . kg^-1 . h^-1) => needs to be
 # * Weight(kg)-> mg O2 . h^-1
-# * Clark :    Watt =>  Oxygen consumption mg O2 . h^-1
+# * Clark :Watt =>  Oxygen consumption mg O2 . h^-1
 # * Ikeda :    Routine respiration (microL O2 . h^-1)  => needs to be converted.
 # Mass Volumic : 1.308*10^3 mg/L, so :
 # (http://wiki.scienceamusante.net/index.php?title=dioxyg%C3%A8ne)
 # *                                        1- microL-> *10^-6 -> L
 # *                                        2- L     -> *1.308*10^3-> mg O2. h^-1
-# * Killen :   mg O2/h adjusted to 1kg and 15°C
+# * Killen :   mg O2/h ( # not the value adjusted to 1kg and 15°C)
+# * Gravel :Watt =>  Oxygen consumption mg O2 . h^-1
 
-source("01-Dataset_construction/Scripts/functions_data_collection.R")
+
 ##**********
 #Deal with 2 datasets other than Fishbase : 
 #extract data from Clarke and Johnston 1999 AND IOkeda et al 2016 and clean it 
-oxygen99 <- read.csv(paste0(getwd(), "/01-Dataset_construction/Inputs/Clarke & Johnston 2025/metabolic_rates.csv"), skip = c(25))
-oxygen99 <- oxygen99[which(oxygen99$Class == "Osteichthyes"),]
-oxygen16 <- read.csv2(paste0(getwd(), "/01-Dataset_construction/Inputs/Ikeda16_ConsoO2.csv"))[1:102,]
+oxygen25  <- read.csv(paste0(getwd(), "/01-Dataset_construction/Inputs/Clarke & Johnston 2025/metabolic_rates.csv"), skip = c(25))
+oxygen25  <- oxygen25[which(oxygen25$Class == "Osteichthyes"),]
+oxygen16  <- read.csv2(paste0(getwd(), "/01-Dataset_construction/Inputs/Ikeda16_ConsoO2.csv"))[1:102,]
 oxygen16b <- read.csv(paste0(getwd(), "/01-Dataset_construction/Inputs/Killenetal16Ecological.csv"))
 oxygen16b <- oxygen16b[-which(is.na(oxygen16b$RMRmass)),]
-  
+# oxygen21  <- read.csv('01-Dataset_construction/Inputs/Wong et al.,2021/SampleSizeDataset.csv') # already included in Gravel 2024
+oxygen24  <- read.csv("01-Dataset_construction/Inputs/Gravel et al., 2024/data/FULL_Rmax_LHT_MR_ms.csv", header=TRUE, fileEncoding = 'UTF-8') %>% as.data.frame() 
+oxygen24 <-  oxygen24 %>%
+  filter(MRtype == 'RMR' & (DFtype == 'MeanT' | DFtype == 'Both')) %>%
+  dplyr::select(-c("MRtype", "DFtype"))
+
 # change units according to the units expected on fishbase
 # clarke and johnston : first all in Watt
-oxygen99$MR..d.[which(oxygen99$Unit..MR...e. == "mW")]      <-  
-  oxygen99$MR..d.[which(oxygen99$Unit..MR...e. == "mW")]*10^(-3)
-oxygen99$Unit..MR...e.[which(oxygen99$Unit..MR...e. == "mW")]      <-  "W"
-oxygen99$MR..d.respi <- convert_watt_to_respi(oxygen99$MR..d.)
-oxygen99$Mb..b.kg    <- as.numeric(oxygen99$Mb..b.)*10^-3
+oxygen25$MR..d.[which(oxygen25$Unit..MR...e. == "mW")]      <-  
+  oxygen25$MR..d.[which(oxygen25$Unit..MR...e. == "mW")]*10^(-3)
+oxygen25$Unit..MR...e.[which(oxygen25$Unit..MR...e. == "mW")]      <-  "W"
+oxygen25$MR..d.respi <- convert_watt_to_respi(oxygen25$MR..d.)
+oxygen25$Mb..b.kg    <- as.numeric(oxygen25$Mb..b.)*10^-3
+oxygen25$Genus       <- str_split_fixed(oxygen25$Species, " ", n=2)[,1]
 
 oxygen16$kgWM        <- as.numeric(oxygen16$mgWM)*(10^-6)
 oxygen16$R_L         <- as.numeric(oxygen16$R)*10^-6
@@ -186,7 +201,16 @@ oxygen16$OxygenCons  <- oxygen16$R_L*1.308*10^3
 oxygen16b$RMRmasskg  <- oxygen16b$RMRmass*10^-3
 oxygen16b$Species    <- stringr::str_replace(oxygen16b$species, "_", " ")
 
-# add species code to the data + put aside the data that is not complete
+oxygen24$Species     <- oxygen24$ScientificName
+oxygen24$MaxBodyMass_KG <- oxygen24$MRMassGrams * 10^-3
+oxygen24$OxygenCons  <- convert_watt_to_respi(oxygen24$WholeOrganismMRWatts)
+# oxygen21$Species <- oxygen21$ScientificName
+# oxygen21$MaxBodyMass_KG <- oxygen21$MaxBodyMass_G * 10^-3
+# oxygen21$MeasurementTemp_Celcius <- oxygen21$MeasurementTemp_Kelvin -273.15
+# oxygen21$OxygenCons <- convert_watt_to_respi(oxygen21$WholeOrganismRMR_Watts)
+
+
+# add species code to the data + complement the dataset that is not complete
 oxygen16b    <- ox16b_correction(oxygen16b)
 idsp16b      <- which(oxygen16b$Species %in%  taxo_tot$Species)
 ox16bnospe   <- oxygen16b[-idsp16b,] #puting on the side the species without a complete species name
@@ -203,20 +227,36 @@ matchingspeccode16nb     <- which(taxo_tot$Species %in% oxygen16$Species)
 matchingspeccode16       <- taxo_tot[matchingspeccode16nb, c("Species", "SpecCode")]
 oxygen16    <- full_join(oxygen16, matchingspeccode16)
 
-oxygen99    <- ox99_correction(oxygen99) # this way are missing only misspecified only the species for which : no species specified
-idsp99      <- which(oxygen99$Species %in%  taxo_tot$Species)
-ox99nospe   <- oxygen99[-idsp99,] #puting on the side the species without a complete species name
-oxygen99    <- oxygen99[idsp99,]
-matchingspeccode99nb     <- which(taxo_tot$Species %in% oxygen99$Species)
+oxygen25    <- ox99_correction(oxygen25) # this way are missing only misspecified only the species for which : no species specified
+idsp99      <- which(oxygen25$Species %in%  taxo_tot$Species)
+ox99nospe   <- oxygen25[-idsp99,] #puting on the side the species without a complete species name
+oxygen25    <- oxygen25[idsp99,]
+matchingspeccode99nb     <- which(taxo_tot$Species %in% oxygen25$Species)
 matchingspeccode99       <- taxo_tot[matchingspeccode99nb, c("Species", "SpecCode")]
-oxygen99    <- full_join(oxygen99, matchingspeccode99)
+oxygen25    <- full_join(oxygen25, matchingspeccode99)
 
+oxygen24    <- ox24_correction(oxygen24) # this way are missing only misspecified only the species for which : no species specified
+idsp24      <- which(oxygen24$Species %in%  taxo_tot$Species)
+ox24nospe   <- oxygen24[-idsp24,] #puting on the side the species without a complete species name
+oxygen24    <- oxygen24[idsp24,]
+matchingspeccode24nb     <- which(taxo_tot$Species %in% oxygen24$Species)
+matchingspeccode24       <- taxo_tot[matchingspeccode24nb, c("Species", "SpecCode")]
+oxygen24    <- full_join(oxygen24, matchingspeccode24)
+# oxygen21    <- ox21_correction(oxygen21) # this way are missing only misspecified only the species for which : no species specified
+# idsp21      <- which(oxygen21$ScientificName %in%  taxo_tot$Species)
+# ox21nospe   <- oxygen21[-idsp21,] #puting on the side the species without a complete species name
+# oxygen21    <- oxygen21[idsp21,]
+# matchingspeccode21nb     <- which(taxo_tot$Species %in% oxygen21$Species)
+# matchingspeccode21       <- taxo_tot[matchingspeccode21nb, c("Species", "SpecCode")]
+# oxygen21    <- full_join(oxygen21, matchingspeccode21)
 # complete genus and species and speccode columns
 oxygen99$Genus           <- str_split_fixed(oxygen99$Species, " ", n=2)[,1]
 
 void16                   <- which(oxygen16$Species == "")
 oxygen16$Species[void16] <- paste0(oxygen16$Genus[void16], " sp")
 oxygen16$Genus           <- str_split_fixed(oxygen16$Species, " ", n=2)[,1]
+
+
 
 
 ##***************
@@ -230,15 +270,176 @@ oxygenbase <- oxygenbase[-which(oxygenbase$Weight == 0),]
 
 ##****************
 #merge data from Fishbase, Clarke, Ikeda
-Ref          <- c(rep("fishbase", dim(oxygenbase)[1]), rep("clarke", dim(oxygen99)[1]), rep("ikeda", dim(oxygen16)[1]), rep("killen", dim(oxygen16b)[1]))
-OxygenCons   <- c(oxygenbase$OxygenCons, oxygen99$MR..d.respi, oxygen16$OxygenCons, oxygen16b$RMRsource)
-Weight       <- c(oxygenbase$Weight,     oxygen99$Mb..b.kg,   oxygen16$kgWM,   oxygen16b$RMRmasskg)
-SpecCode     <- c(oxygenbase$SpecCode,      oxygen99$SpecCode,      oxygen16$SpecCode, oxygen16b$SpecCode)
-Temperature  <- as.numeric(c(oxygenbase$Temp,       oxygen99$Tb..c., oxygen16$Temp, oxygen16b$RMRtemp))
-AppliedStress<- c(oxygenbase$AppliedStress, rep("NA", length(oxygen99$SpecCode)), rep("NA", length(oxygen16$SpecCode)), rep("NA", length(oxygen16b$SpecCode)))
-MetabolicLevel<-c(oxygenbase$MetabolicLevel, rep("standard", length(oxygen99$SpecCode)), rep("routine", length(oxygen16$SpecCode)), rep("standard", length(oxygen16b$SpecCode)))
-OxygenRefNo  <- as.numeric(c(oxygenbase$OxygenRefNo, rep("NA", length(oxygen99$SpecCode)), rep("NA", length(oxygen16$SpecCode)), rep("NA", length(oxygen16b$SpecCode))))
+Ref          <- c(rep("fishbase", dim(oxygenbase)[1]), rep("clarke", dim(oxygen25)[1]), rep("ikeda", dim(oxygen16)[1]), 
+                  rep("killen", dim(oxygen16b)[1]), rep("gravel", dim(oxygen24)[1]))
+OxygenCons   <- c(oxygenbase$OxygenCons, oxygen25$MR..d.respi, oxygen16$OxygenCons, oxygen16b$RMRsource, oxygen24$OxygenCons)
+Weight       <- c(oxygenbase$Weight,     oxygen25$Mb..b.kg,   oxygen16$kgWM,   oxygen16b$RMRmasskg, oxygen24$MaxBodyMass_KG)
+SpecCode     <- c(oxygenbase$SpecCode,      oxygen25$SpecCode,      oxygen16$SpecCode, oxygen16b$SpecCode, oxygen24$SpecCode)
+Temperature  <- as.numeric(c(oxygenbase$Temp,       oxygen25$Tb..c., oxygen16$Temp, oxygen16b$RMRtemp, oxygen24$MRTempCelcius))
+AppliedStress<- c(oxygenbase$AppliedStress, rep("NA", length(oxygen25$SpecCode)), rep("NA", length(oxygen16$SpecCode)), 
+                  rep("NA", length(oxygen16b$SpecCode)), rep("NA", length(oxygen24$SpecCode)))
+MetabolicLevel<-c(oxygenbase$MetabolicLevel, rep("standard", length(oxygen25$SpecCode)), rep("routine", length(oxygen16$SpecCode)), 
+                  rep("standard", length(oxygen16b$SpecCode)), rep("standard", length(oxygen24$SpecCode)))
+OxygenRefNo  <- as.numeric(c(oxygenbase$OxygenRefNo, rep("NA", length(oxygen25$SpecCode)), rep("NA", length(oxygen16$SpecCode)), 
+                             rep("NA", length(oxygen16b$SpecCode)),  rep("NA", length(oxygen24$SpecCode))))
 oxdata       <- data.frame(Ref, OxygenCons, Weight, Temperature, SpecCode, MetabolicLevel, AppliedStress, OxygenRefNo)
+
+
+##****************
+#remove the false replicates
+specc_tab <- table(oxdata$SpecCode)
+specc_vals <- names(specc_tab[specc_tab > 1])
+nb_repetitions <- 0
+ref_to_remove <- data.frame(
+  SpecCode = character(),
+  dataset_1 = character(),
+  dataset_2 = character(),
+  rowname_1 = character(),
+  rowname_2 = character(),
+  stringsAsFactors = FALSE
+)
+seen_keys <- c()
+for (specc in specc_vals){
+  
+  data_specc <- oxdata[which(oxdata$SpecCode == specc),]
+  if (length(names(table(data_specc$Ref)))==1){next}
+  for (ref in names(table(data_specc$Ref))){
+    data_specc_ref <- data_specc[which(data_specc$Ref == ref),]
+    data_specc_not_ref <- data_specc[-which(data_specc$Ref == ref),]
+    for (obs in 1:nrow(data_specc_ref)){
+      ID_closest <- DescTools::Closest(x = data_specc_not_ref$OxygenCons,
+                         a = data_specc_ref$OxygenCons[obs], which = T)
+      ox_diff <- data_specc_not_ref[ID_closest,"OxygenCons"]-data_specc_ref[obs,"OxygenCons"]
+      w_diff <- data_specc_not_ref[ID_closest,"Weight"]-data_specc_ref[obs,"Weight"]
+      deg_diff <- data_specc_not_ref[ID_closest,"Temperature"]-data_specc_ref[obs,"Temperature"]
+      
+      if(abs(ox_diff[1])<1){
+        if(abs(w_diff[1])<0.5){
+          if(abs(deg_diff[1])<0.51){
+            if(any(data_specc_not_ref[ID_closest, "MetabolicLevel"] %in% data_specc_ref[obs,"MetabolicLevel"])){
+              nb_repetitions <- nb_repetitions+1
+              # cat(unlist(data_specc_not_ref[ID_closest,]), "\nand\n",  unlist(data_specc_ref[obs,]), "\nvalues are really close\n")
+              ref_to_remove <- rbind(ref_to_remove, data.frame("SpecCode"= specc, 
+                                        "dataset_1"=data_specc_not_ref[ID_closest[1], "Ref"], 
+                                        "dataset_2"=data_specc_ref[obs, "Ref"], 
+                                        "rowname_1"=rownames(data_specc_not_ref[ID_closest[1],]), 
+                                        "rowname_2"=rownames(data_specc_ref[obs,])))
+              if(length(ID_closest)==2){
+                cat(unlist(data_specc_not_ref[ID_closest,]), "\nand\n",  unlist(data_specc_ref[obs,]), "\nvalues are really close\n")
+                ref_to_remove <- rbind(ref_to_remove, data.frame("SpecCode"= specc, 
+                                                                 "dataset_1"=data_specc_not_ref[ID_closest[2], "Ref"], 
+                                                                 "dataset_2"=data_specc_ref[obs, "Ref"], 
+                                                                 "rowname_1"=rownames(data_specc_not_ref[ID_closest[2],]), 
+                                                                 "rowname_2"=rownames(data_specc_ref[obs,])))
+                rn1 <- rownames(data_specc_not_ref)[ID_closest[2]]
+                rn2 <- rownames(data_specc_ref)[obs]
+                key <- paste(sort(c(rn1, rn2)), collapse = "_")
+                key2 <- paste(sort(c(rn2, rn1)), collapse = "_")
+                if (!(key %in% seen_keys) || !(key2 %in% seen_keys)) {
+                  seen_keys <- c(seen_keys, key)
+                }
+              }
+              if(length(ID_closest)>2){cat("length ID_closest > 2\n")}
+              
+              rn1 <- rownames(data_specc_not_ref)[ID_closest[1]]
+              rn2 <- rownames(data_specc_ref)[obs]
+              key <- paste(sort(c(rn1, rn2)), collapse = "_")
+              key2 <- paste(sort(c(rn2, rn1)), collapse = "_")
+              if (!(key %in% seen_keys) || !(key2 %in% seen_keys)) {
+                seen_keys <- c(seen_keys, key)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+ID_remove <- unlist(stringr::str_split(seen_keys, pattern = "_"))#[seq(1,length(seen_keys)*2, by=2)]
+oxdata    <- oxdata[-which(rownames(oxdata) %in% ID_remove),]
+
+
+specc_tab <- table(oxdata$SpecCode)
+specc_vals <- names(specc_tab[specc_tab > 1])
+nb_repetitions <- 0
+ref_to_remove <- data.frame(
+  SpecCode = character(),
+  dataset_1 = character(),
+  dataset_2 = character(),
+  rowname_1 = character(),
+  rowname_2 = character(),
+  stringsAsFactors = FALSE
+)
+seen_keys <- c()
+for (specc in specc_vals){
+  
+  data_specc <- oxdata[which(oxdata$SpecCode == specc),]
+  if (length(names(table(data_specc$Ref)))==1){next}
+  for (ref in names(table(data_specc$Ref))){
+    data_specc_ref <- data_specc[which(data_specc$Ref == ref),]
+    data_specc_not_ref <- data_specc[-which(data_specc$Ref == ref),]
+    for (obs in 1:nrow(data_specc_ref)){
+      ID_closest <- DescTools::Closest(x = data_specc_not_ref$OxygenCons,
+                                       a = data_specc_ref$OxygenCons[obs], which = T)
+      ox_diff <- (data_specc_not_ref[ID_closest,"OxygenCons"])*10^4-(data_specc_ref[obs,"OxygenCons"])*10^4
+      w_diff <- data_specc_not_ref[ID_closest,"Weight"]-data_specc_ref[obs,"Weight"]
+      deg_diff <- data_specc_not_ref[ID_closest,"Temperature"]-data_specc_ref[obs,"Temperature"]
+      
+      if(min(w_diff)==0){
+        if(min(deg_diff)==0){
+          if(any(data_specc_not_ref[ID_closest, "MetabolicLevel"] %in% data_specc_ref[obs,"MetabolicLevel"])){
+            nb_repetitions <- nb_repetitions+1
+            cat(unlist(data_specc_not_ref[ID_closest,]), "\nand\n",  unlist(data_specc_ref[obs,]), "\nvalues are really close\n")
+            ref_to_remove <- rbind(ref_to_remove, data.frame("SpecCode"= specc, 
+                                                             "dataset_1"=data_specc_not_ref[ID_closest[1], "Ref"], 
+                                                             "dataset_2"=data_specc_ref[obs, "Ref"], 
+                                                             "rowname_1"=rownames(data_specc_not_ref[ID_closest[1],]), 
+                                                             "rowname_2"=rownames(data_specc_ref[obs,])))
+            if(length(ID_closest)==2){
+              cat(unlist(data_specc_not_ref[ID_closest,]), "\nand\n",  unlist(data_specc_ref[obs,]), "\nvalues are really close\n")
+              ref_to_remove <- rbind(ref_to_remove, data.frame("SpecCode"= specc, 
+                                                               "dataset_1"=data_specc_not_ref[ID_closest[2], "Ref"], 
+                                                               "dataset_2"=data_specc_ref[obs, "Ref"], 
+                                                               "rowname_1"=rownames(data_specc_not_ref[ID_closest[2],]), 
+                                                               "rowname_2"=rownames(data_specc_ref[obs,])))
+              # rn1 <- rownames(data_specc_not_ref)[ID_closest[2]]
+              # rn2 <- rownames(data_specc_ref)[obs]
+              # key <- paste(sort(c(rn1, rn2)), collapse = "_")
+              # key2 <- paste(sort(c(rn2, rn1)), collapse = "_")
+              # if (!(key %in% seen_keys) || !(key2 %in% seen_keys)) {
+              #   seen_keys <- c(seen_keys, key)
+              # }
+            }
+            if(length(ID_closest)>2){cat("length ID_closest > 2\n")}
+            
+            rn1 <- rownames(data_specc_not_ref)[ID_closest[1]]
+            rn2 <- rownames(data_specc_ref)[obs]
+            key <- paste(sort(c(rn1, rn2)), collapse = "_")
+            key2 <- paste(sort(c(rn2, rn1)), collapse = "_")
+            if (!(key %in% seen_keys) || !(key2 %in% seen_keys)) {
+              seen_keys <- c(seen_keys, key)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+ID_remove <- unlist(stringr::str_split(seen_keys, pattern = "_"))
+
+oxdata -> oxdatabis
+oxdatabis -> oxdata
+
+for (rm in c(1:length(ID_remove[seq(1,length(seen_keys)*2, by=2)]))[1:7]){
+  id_remove <- which(oxdata[which(rownames(oxdata) %in% ID_remove[c(rm, rm*2)]),"Ref"] %in% c("killen","ikeda", "gravel", "clarke"))[1]
+  if (is.na(id_remove)){next}
+  if(length(which(rownames(oxdata) %in% ID_remove[c(rm, rm*2)[id_remove]]))==0){next}
+  oxdata    <- oxdata[-which(rownames(oxdata) %in% ID_remove[c(rm, rm*2)[id_remove]]),]
+}
+
+
+
 
 ##****************
 #organise the data set newly created
@@ -257,19 +458,32 @@ dataplot <- data.frame("Ref" = as.factor(oxdata$Ref), "habitat" = oxdata$DemersP
                        "log(OxCons/Weight)" = log(oxdata$OxygenCons)-log((oxdata$Weight*10^3)^(3/4)))
 
 
-##********** Plot scripts if needed
-ggplot(dataframe_boxplot, aes(x=Ref, y=log(Weight))) +
-  geom_boxplot()+
-  geom_signif(comparisons = list(c("clarke", "fishbase"), c("clarke", "ikeda"), c("fishbase", "ikeda"), c("killen", "fishbase"), c("clarke", "killen"), c("killen", "ikeda")),
-              map_signif_level=TRUE)
-ggplot(dataframe_boxplot, aes(x=Ref, y=Temp)) +
-  geom_boxplot()+
-  geom_signif(comparisons = list(c("clarke", "fishbase"), c("clarke", "ikeda"), c("fishbase", "ikeda"), c("killen", "fishbase"), c("clarke", "killen"), c("killen", "ikeda")),
-              map_signif_level=TRUE)
-ggplot(dataframe_boxplot, aes(x=Ref, y=log(OxygenCons))) +
-  geom_boxplot()+
-  geom_signif(comparisons = list(c("clarke", "fishbase"), c("clarke", "ikeda"), c("fishbase", "ikeda"), c("killen", "fishbase"), c("clarke", "killen"), c("killen", "ikeda")),
-              map_signif_level=TRUE)
+# ##********** Plot scripts if needed
+# ggplot(dataframe_boxplot, aes(x=Ref, y=log(Weight))) +
+#   geom_boxplot()+
+#   geom_signif(comparisons = list(c("clarke", "fishbase"), c("clarke", "ikeda"), 
+#                                  c("fishbase", "ikeda"), c("killen", "fishbase"), 
+#                                  c("clarke", "killen"), c("killen", "ikeda"),
+#                                  c("gravel", "killen"), c("gravel", "ikeda"),
+#                                  c("gravel", "clarke"), c("gravel", "fishbase")),
+#               map_signif_level=TRUE)
+# ggplot(dataframe_boxplot, aes(x=Ref, y=Temp)) +
+#   geom_boxplot()+
+#   geom_signif(comparisons = list(c("clarke", "fishbase"), c("clarke", "ikeda"), 
+#                                  c("fishbase", "ikeda"), c("killen", "fishbase"), 
+#                                  c("clarke", "killen"), c("killen", "ikeda"),
+#                                  c("gravel", "killen"), c("gravel", "ikeda"),
+#                                  c("gravel", "clarke"), c("gravel", "fishbase")),
+#               map_signif_level=TRUE)
+# ggplot(dataframe_boxplot, aes(x=Ref, y=log(OxygenCons))) +
+#   geom_boxplot()+
+#   geom_signif(comparisons = list(c("clarke", "fishbase"), c("clarke", "ikeda"), 
+#                                  c("fishbase", "ikeda"), c("killen", "fishbase"), 
+#                                  c("clarke", "killen"), c("killen", "ikeda"),
+#                                  c("gravel", "killen"), c("gravel", "ikeda"),
+#                                  c("gravel", "clarke"), c("gravel", "fishbase")),
+#               map_signif_level=TRUE)
+
 
 
 ##*******************
@@ -294,74 +508,80 @@ if (length(vecnames)>0){
 
 ##*********************
 #remove the individuals that make the slope of the plot oxygen~weight or oxygen~temperature being negative according to a sampling effort or habitat
-# 1- plot it
 tabsp <- table(dataplot$Genus)
 r=0
 sp=c()
-for (i in 1:length(tabsp)){
+genusNEG <- c()
+for (i in c(1:length(tabsp))){
   ID_sp <- which(dataplot$Genus == names(tabsp)[i])
-  if (length(ID_sp)<2){next}
-    pa <- ggplot(dataplot[ID_sp,], aes(X.1.Temp, log.OxCons.Weight., colour = habitat)) +
+  data_tempo <- dataplot[ID_sp,]
+  if (length(which(is.infinite(data_tempo$X.1.Temp)))>0){data_tempo <- data_tempo[-which(is.infinite(data_tempo$X.1.Temp)),]}
+  
+  if (length(data_tempo$habitat)<2){next}
+  pa <- ggplot(data_tempo, aes(X.1.Temp, log.OxCons.Weight., colour = habitat)) +
     geom_point() +
     geom_smooth(span = 0.8, method='lm')
-    pb <- ggplot(dataplot[ID_sp,], aes(Weight.beta, log.OxygenCons., colour = habitat)) +
+  pb <- ggplot(data_tempo, aes(Weight.beta, log.OxygenCons., colour = habitat)) +
     geom_point() +
     geom_smooth(span = 0.8, method = 'lm')
-    r = r+1
-    sp = c(sp, names(tabsp)[i])
-    assign(x = paste0("plot", names(tabsp)[i]), value = ggarrange(pa, pb))
+  r = r+1
+  sp = c(sp, names(tabsp)[i])
+  assign(x = paste0("plot", names(tabsp)[i]), value = ggarrange(pa, pb))
+  
+  if (length(table(data_tempo$habitat))==1){
+    fit1 <- lm( log.OxCons.Weight.~X.1.Temp, data = data_tempo)
+    fit2 <- lm( log.OxygenCons.~Weight.beta, data = data_tempo)
+    ID1 <- 2
+    ID2 <- 2
+    sp_name <- names(tabsp)[i]
+  } else {
+    fit1 <- lm( log.OxCons.Weight.~X.1.Temp*habitat, data = data_tempo)
+    fit2 <- lm( log.OxygenCons.~Weight.beta*habitat, data = data_tempo)
+    ID1 <- c(2, grep(names(coef(fit1)), pattern = ":"))
+    ID2 <- c(2, grep(names(coef(fit2)), pattern = ":"))
+    # sp_name <- paste0(names(tabsp)[i], "_", 
+           # unique(c(names(table(data_tempo$habitat))[coef(fit1)[ID1]<0], names(table(data_tempo$habitat))[coef(fit2)[ID2]<0])))
+  }
+  
+  if (any(is.na(coef(fit1)[ID1]), is.na(coef(fit2)[ID2]))) {
+    genusNEG <- c(genusNEG, names(tabsp)[i])
+    next}
+  if(any(coef(fit1)[ID1]<0) || any(coef(fit2)[ID2]<0)){
+    genusNEG <- c(genusNEG, sp_name)}
 }
+
 sort_sp <- sort(sp)
 pdf(file=paste0(pathoutputplot, "/genus_variables_check.pdf"))
 for (k in sort_sp){
-  
   plot <- get(paste0("plot", k))
   print(annotate_figure(plot, top = text_grob(k, face = "bold", size = 14)))
 }
 dev.off()
 
 
-# 2- from the shape of the plots : manual selection of the species to exclude
-# here : we haven't applied the species selection yet, taht's why you might find species that won't stay in the final dataset, such as Fundulus genus
 
-genusNEG <- c("Anguilla", "Borostomias", "Conger", "Diplodus", "Echiichthys", 
-              "Fundulus", "Gymnocephalus","Girella", "Hypanus",  "Labeo", "Lagodon", 
-               "Lampanyctus", "Microstomus", "Myoxocephalus", "Orthodon", "Pimephales", "Planiliza", 
-              "Scophthalmus",  "Scyliorhinus", "Stomias", "Syngnathus",
-               "Tautogolabrus", "Torpedo", "Xiphophorus", "Zoarces")
 oxdata -> oxdatabis
 oxdatabis -> oxdata
-dimox <-c()
-for (i in seq_len(length(genusNEG))){   
-  cat(i, "\t", dim(oxdata), "\n") # if 0 appear in the sequence, it is not normal
-  idgenusNEG <- which(oxdata$Genus == genusNEG[i])
-  if (length(idgenusNEG)>0){
-    if (genusNEG[i] %in% c("Borostomias", "Conger", "Diplodus", "Echiichthys", 
-                           "Fundulus","Gymnocephalus","Girella", "Hypanus", "Lagodon", 
-                           "Lampanyctus", "Microstomus", "Myoxocephalus", "Orthodon",  "Pimephales", "Planiliza", 
-                           "Scophthalmus",  "Stomias", "Syngnathus",
-                           "Tautogolabrus", "Xiphophorus", "Zoarces")){
-    oxdata <- oxdata[-idgenusNEG, ]
-    }
-    if (genusNEG[i] %in% c("Anguilla", "Scyliorhinus", 
-                           "Torpedo", "Labeo")){
-      if (genusNEG[i] %in% c("Scyliorhinus", "Anguilla")){
-        idbenthopelag <- which(oxdata$DemersPelag == c("benthopelagic"))
-        idRM          <- idgenusNEG[idgenusNEG %in% idbenthopelag]
-        oxdata        <- oxdata[-idRM, ]
-      }      
-      else {
-        iddemer <- which(oxdata$DemersPelag == c("demersal")) 
-        idRM          <- idgenusNEG[idgenusNEG %in% iddemer]
-        oxdata        <- oxdata[-idRM, ]
-      }
-    }
-  dimox <- c(dimox, dim(oxdata)[1])
+
+for (i in genusNEG){
+  cat(dim(oxdata), "\n")
+  if(length(which((oxdata$Genus == i)))==0){
+    cat("no ", i, " in the dataset \n")
+    next}
+  if (!stringr::str_detect(i, pattern = "_")){
+    oxdata <- oxdata[-which(oxdata$Genus == i),]
+  }else {
+    sp <- stringr::str_split(i, "_")[[1]][1]
+    hab <- stringr::str_split(i, "_")[[1]][2]
+    if( length(hab)==0){cat("issue with sp ", i)
+      next}
+    oxdata <- oxdata[-which(oxdata$Genus == sp & oxdata$DemersPelag == hab),]
   }
-  if(length(idgenusNEG)==0){
-    oxdata <- oxdata
-    dimox <- c(dimox, 0)}
+  if (dim(oxdata)[1] == 0){cat(i)}
 }
+
+
+
 
 
 ##*******************

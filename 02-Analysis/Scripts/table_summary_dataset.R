@@ -5,9 +5,9 @@
 
 # Convert summary to a dataframe (just an example if it's stored)
 source(paste0("02-Analysis/Scripts/00-Functions_for_analysis.R"))
-path_output_genus <- paste0("01-Dataset_construction/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho")
-datagenus <- read.csv(paste0(path_output_genus, "/dataset_phylosem.csv"))
-datagenus_t <- read.csv(paste0(path_output_genus, "/dataset_traits_phylosem.csv"))
+path_output_genus <- paste0("01-Dataset_construction/Outputs/dataset_creation_output_last/dataset_for_phylosem_NOUNITCV/output_tot_stdmorpho")
+datagenus <- read.csv(paste0(path_output_genus, "/eladataset_phylosem.csv"))
+datagenus_t <- read.csv(paste0(path_output_genus, "/eladataset_traits.csv"))
 
 summary_data <- summary(datagenus)
 
@@ -21,7 +21,7 @@ summary_table <- kable(summary_data, format = "html", table.attr = "class='table
 
 
 # Print the table
-summary_table
+(summary_table)
 
 
 
@@ -32,6 +32,10 @@ summary_table
 
 elasmo <- datagenus_t[which(datagenus$Class=="Elasmobranchii"),]
 teleo <- datagenus_t[which(datagenus$Class=="Teleostei"),]
+
+colSums(is.na(elasmo))
+colSums(is.na(teleo))
+
 
 whichX <- which(colnames(elasmo)==c("X"))
 elasmo_na <- elasmo[,-whichX]

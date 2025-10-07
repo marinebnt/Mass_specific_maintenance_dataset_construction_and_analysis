@@ -1,7 +1,7 @@
 # beneat marine 
 # 14/10/24 
 # Make sure that the dataset we use makes sense
-# Question: can we have in the same dataset routine, standard and NA metabolic rates from Fishbase? 
+# Question: should we unbias the  and NA metabolic rates from Fishbase? 
 
 
 
@@ -18,6 +18,7 @@ library(partR2)
 library(car)
 library(merDeriv)
 library(nlme)
+
 
 #####
 path <- paste0("01-Dataset_construction/Scripts")
@@ -64,7 +65,7 @@ pairwise.wilcox.test(oxdata$OxygenCons, oxdata$MetabolicLevel)
 # 2- Comparing what happens to the slope and intercept when we use the dataset with only standard or routine data ? 
 
 cat("loading output LMER from script 02-")
-load(file = "01-Dataset_construction/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/LMER.RData")
+load(file = "01-Dataset_construction/Outputs/dataset_creation_output/dataset_for_phylosem_NOUNITCV/IMAGELOG.RData")
 model <- lmm_ox_S
 path <- paste0("01-Dataset_construction/Scripts")
 pathoutput <- paste0("01-Dataset_construction/Outputs/dataset_creation_output")

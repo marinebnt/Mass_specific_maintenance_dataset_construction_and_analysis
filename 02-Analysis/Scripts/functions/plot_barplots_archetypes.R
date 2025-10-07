@@ -9,22 +9,22 @@
 #INITIALIZATION
 
 
-AAAelasmo <- AAelasmo
-AAAteleo <- AAteleo
+# AAAelasmo <- AAelasmo
+# AAAteleo <- AAteleo
 AAAtot <- AAtot
 
 # veccol veccnames
-colAAteleo <- c()
-labelAAteleo <- c()
-iopp <- which.max(as.data.frame(AAAteleo$archetypes)$K) 
-colAAteleo[iopp] = "tomato"
-labelAAteleo[iopp] = "Fast"
-ieq <- which.min(as.data.frame(AAAteleo$archetypes)$K) 
-colAAteleo[ieq] = "royalblue"
-labelAAteleo[ieq] = "Slow"
-iper <- c(1:3)[-c(ieq, iopp)]
-colAAteleo[iper] = "darkgreen"
-labelAAteleo[iper] ="Intermediate"
+# colAAteleo <- c()
+# labelAAteleo <- c()
+# iopp <- which.max(as.data.frame(AAAteleo$archetypes)$K) 
+# colAAteleo[iopp] = "tomato"
+# labelAAteleo[iopp] = "Fast"
+# ieq <- which.min(as.data.frame(AAAteleo$archetypes)$K) 
+# colAAteleo[ieq] = "royalblue"
+# labelAAteleo[ieq] = "Slow"
+# iper <- c(1:3)[-c(ieq, iopp)]
+# colAAteleo[iper] = "darkgreen"
+# labelAAteleo[iper] ="Intermediate"
 
 colAAtot <- c()
 labelAAtot <- c()
@@ -38,22 +38,22 @@ iper <- c(1:3)[-c(ieq, iopp)]
 colAAtot[iper] = "darkgreen"
 labelAAtot[iper] ="Intermediate"
 
-colAAelasmo <- c()
-labelAAelasmo <- c()
-iopp <- which.max(as.data.frame(AAAelasmo$archetypes)$K) 
-colAAelasmo[iopp] = "tomato"
-labelAAelasmo[iopp] = "Fast"
-ieq <- which.min(as.data.frame(AAAelasmo$archetypes)$K) 
-colAAelasmo[ieq] = "royalblue"
-labelAAelasmo[ieq] = "Slow"
-iper <- c(1:3)[-c(ieq, iopp)]
-colAAelasmo[iper] = "darkgreen"
-labelAAelasmo[iper] ="Intermediate"
+# colAAelasmo <- c()
+# labelAAelasmo <- c()
+# iopp <- which.max(as.data.frame(AAAelasmo$archetypes)$K) 
+# colAAelasmo[iopp] = "tomato"
+# labelAAelasmo[iopp] = "Fast"
+# ieq <- which.min(as.data.frame(AAAelasmo$archetypes)$K) 
+# colAAelasmo[ieq] = "royalblue"
+# labelAAelasmo[ieq] = "Slow"
+# iper <- c(1:3)[-c(ieq, iopp)]
+# colAAelasmo[iper] = "darkgreen"
+# labelAAelasmo[iper] ="Intermediate"
 
 # correction 
-colnames(AAAelasmo$archetypes)[which(colnames(AAAelasmo$archetypes) == "fecundity")]<- "Fecundity"
-colnames(AAAteleo$archetypes)[which(colnames(AAAteleo$archetypes) == "fecundity")]<- "Fecundity"
-colnames(AAAtot$archetypes)[which(colnames(AAAtot$archetypes) == "fecundity")]<- "Fecundity"
+# colnames(AAAelasmo$archetypes)[which(colnames(AAAelasmo$archetypes) == "fecundity")]<- "Fecundity"
+# colnames(AAAteleo$archetypes)[which(colnames(AAAteleo$archetypes) == "fecundity")]<- "Fecundity"
+# colnames(AAAtot$archetypes)[which(colnames(AAAtot$archetypes) == "fecundity")]<- "Fecundity"
 
 
 # ########### ANALYSIS PREVIEW #############
@@ -95,7 +95,7 @@ colnames(AAAtot$archetypes)[which(colnames(AAAtot$archetypes) == "fecundity")]<-
 
 
 ########### BARPLOT TOT #############
-rownames(AAAtot$archetypes)<- labelAAtot
+rownames(AAAtot$archetypes)<- labelAAtot[1:nrow(AAtot$archetypes)]
 archetype_traits_long <- as.data.frame(AAAtot$archetypes) %>%
   tibble::rownames_to_column(var = "Archetype") %>%
   pivot_longer(cols = -Archetype, names_to = "Trait", values_to = "Value")
@@ -121,60 +121,60 @@ ggsave(plottot, file = paste0(path_plots, "/barplot_tot.pdf"), width=5.63, heigh
 
 
 ########### BARPLOT ELASMOBRANCH #############
-
-rownames(AAAelasmo$archetypes)<- labelAAelasmo # c("AA1", "AA2", "AA3")
-archetype_traits_long <- as.data.frame(AAAelasmo$archetypes) %>%
-  tibble::rownames_to_column(var = "Archetype") %>%
-  pivot_longer(cols = -Archetype, names_to = "Trait", values_to = "Value")
-
-custom_colors <- c("Slow" = "royalblue", 
-                   "Intermediate" = "#00b159", 
-                   "Fast" = "tomato")
-
-
-plot <- ggplot(archetype_traits_long, aes(x = Trait, y = Value, fill = Archetype)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_text(aes(label = round(Value, 2)), position = position_dodge(width = 0.9), vjust = -0.3, size=4) +
-  scale_fill_manual(values = custom_colors) +
-  labs(title = "Elasmobranchs species archetypes trait values",
-       x = "Trait",
-       y = "Trait value",
-       fill = "Archetype") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-ggsave(plot, file = paste0(path_plots, "/barplot_elasmo.pdf"), width=5.63, height=4.03) #, width = 80, height = 180, dpi = 600, units = "mm"
-
-
-
-
-########### BARPLOT TELEOSTEI #############
-
-rownames(AAAteleo$archetypes)<- labelAAteleo
-archetype_traits_long <- as.data.frame(AAAteleo$archetypes) %>%
-  tibble::rownames_to_column(var = "Archetype") %>%
-  pivot_longer(cols = -Archetype, names_to = "Trait", values_to = "Value")
-
-custom_colors <- c("Slow" = "royalblue", 
-                   "Intermediate" = "#00b159", 
-                   "Fast" = "tomato")
-
-
-plotteleo <- ggplot(archetype_traits_long, aes(x = Trait, y = Value, fill = Archetype)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_text(aes(label = round(Value, 2)), position = position_dodge(width = 0.9), vjust = -0.3, size=4) +
-  scale_fill_manual(values = custom_colors) +
-  labs(title = "Teleost species archetypes trait values",
-       x = "Trait",
-       y = "Trait value",
-       fill = "Archetype") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-ggsave(plotteleo, file = paste0(path_plots, "/barplot_teleo.pdf"), width=5.63, height=4.03) 
-
-
-##### SAVE COMBINED barplots ######### 
-combined <- ggarrange(plottot, plotteleo, plot, ncol = 1, nrow=3, common.legend = T, labels = c("A", "B", "C"))
-ggsave(combined, file=paste0(path_plots, "/barplot_combined_time.pdf"), width=7 , height=12)
+# 
+# rownames(AAAelasmo$archetypes)<- labelAAelasmo # c("AA1", "AA2", "AA3")
+# archetype_traits_long <- as.data.frame(AAAelasmo$archetypes) %>%
+#   tibble::rownames_to_column(var = "Archetype") %>%
+#   pivot_longer(cols = -Archetype, names_to = "Trait", values_to = "Value")
+# 
+# custom_colors <- c("Slow" = "royalblue", 
+#                    "Intermediate" = "#00b159", 
+#                    "Fast" = "tomato")
+# 
+# 
+# plot <- ggplot(archetype_traits_long, aes(x = Trait, y = Value, fill = Archetype)) +
+#   geom_bar(stat = "identity", position = "dodge") +
+#   geom_text(aes(label = round(Value, 2)), position = position_dodge(width = 0.9), vjust = -0.3, size=4) +
+#   scale_fill_manual(values = custom_colors) +
+#   labs(title = "Elasmobranchs species archetypes trait values",
+#        x = "Trait",
+#        y = "Trait value",
+#        fill = "Archetype") +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ggsave(plot, file = paste0(path_plots, "/barplot_elasmo.pdf"), width=5.63, height=4.03) #, width = 80, height = 180, dpi = 600, units = "mm"
+# 
+# 
+# 
+# 
+# ########### BARPLOT TELEOSTEI #############
+# 
+# rownames(AAAteleo$archetypes)<- labelAAteleo
+# archetype_traits_long <- as.data.frame(AAAteleo$archetypes) %>%
+#   tibble::rownames_to_column(var = "Archetype") %>%
+#   pivot_longer(cols = -Archetype, names_to = "Trait", values_to = "Value")
+# 
+# custom_colors <- c("Slow" = "royalblue", 
+#                    "Intermediate" = "#00b159", 
+#                    "Fast" = "tomato")
+# 
+# 
+# plotteleo <- ggplot(archetype_traits_long, aes(x = Trait, y = Value, fill = Archetype)) +
+#   geom_bar(stat = "identity", position = "dodge") +
+#   geom_text(aes(label = round(Value, 2)), position = position_dodge(width = 0.9), vjust = -0.3, size=4) +
+#   scale_fill_manual(values = custom_colors) +
+#   labs(title = "Teleost species archetypes trait values",
+#        x = "Trait",
+#        y = "Trait value",
+#        fill = "Archetype") +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ggsave(plotteleo, file = paste0(path_plots, "/barplot_teleo.pdf"), width=5.63, height=4.03) 
+# 
+# 
+# ##### SAVE COMBINED barplots ######### 
+# combined <- ggarrange(plottot, plotteleo, plot, ncol = 1, nrow=3, common.legend = T, labels = c("A", "B", "C"))
+# ggsave(combined, file=paste0(path_plots, "/barplot_combined_time.pdf"), width=7 , height=12)
 
