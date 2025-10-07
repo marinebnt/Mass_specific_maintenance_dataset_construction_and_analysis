@@ -28,3 +28,5 @@ TestResults.xml
 *.tree
 */old
 */old/*
+*/PCAregression*
+*/prcompregression*
