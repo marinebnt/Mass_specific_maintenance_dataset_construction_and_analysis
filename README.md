@@ -21,7 +21,7 @@ Responsible of data collection, codes development and online upload: Marine BENE
 The repository is split into three main directories: The first one is about the dataset construction, the second about data analysis, and the third one is the .csv file with the 18,129 species trait values estimated using the inference process. 
 The folders 01- and 02- contain an Input folder (for 02-: the input data is the output of the folder 01-), a Script folder, and an Output folder.
 
-The dataset construction folder (01-) has two steps. First is the collection of the temperature- and mass-specific respiration data. Second is the input of the mass-specific data and other traits values into the inference process. The inference process is used as input of the data analysis. 
+The dataset construction folder (01-) has two steps. Scripts 01, 02, 03, : collection of the temperature- and mass-specific respiration data. Script 04 : inference process. The inference process is used as input of the data analysis. 
 
 The analysis folder (02-) both produces the cross-validation plots for all the SEM tested, and produces the analysis plots for the selected SEM model. 
 
