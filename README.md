@@ -1,9 +1,9 @@
-### 2025 - Mass-specific dataset construction and data analysis
+### 2025 - Temperature- and Mass-specific dataset construction and data analysis
 ## Overview
 - Global dataset and code for inferring fish metabolic rates using phylogenetic structural equation models (PSEMs). 
 
 ## Summary
-This repository contains the code, data processing pipeline, and analyses associated with the paper _Metabolic data and the challenge of fragmented datasets in the context of climate change for fish_. The study assembles a global dataset of 18,129 marine fish species and uses phylogenetic structural equation models (PSEMs) to infer missing metabolic traits, particularly resting metabolic rate (RMR). Results highlight the relationship between metabolism and life-history strategies (pace-of-life syndrome), with implications for predicting species’ responses to climate change.
+This repository contains the code, data processing pipeline, and analyses associated with the paper _Filling metabolism data gap in marine fish reveals dual pace-of-life and reproductive strategy axes_. The study assembles a global dataset of 18,129 marine fish species and uses phylogenetic structural equation models (PSEMs) to infer missing metabolic traits, particularly resting metabolic rate (RMR). Results highlight the relationship between metabolism and life-history strategies (pace-of-life syndrome), with implications for predicting species’ responses to climate change.
 
 ## Authors & Contact details:
 Marine BENEAT (Marine.Beneat@ifremer.fr),  
