@@ -7,21 +7,21 @@
 #* If the SEM is not the chosen one, it produces the cross-validation plot only, with the related outliers. 
 
 
-
 # loop over all phylosem outputs (tested different SEMs)
 supp      <- "_output"
 paths_dir <-  paste0("01-Dataset_construction/Outputs/phylosem", supp)
 list_dir  <- list.dirs(paths_dir, recursive = F, full.names = F)
-list_dir  <- list_dir[-grep("jack", list_dir)]
+if(any(grepl("jack", list_dir))) {list_dir  <- list_dir[-grep("jack", list_dir)]}
 kmax=3 
 
 # functions to run to produce plots :
 path_func <- "02-Analysis/Scripts/functions/"
 functions <- list.files( "02-Analysis/Scripts/functions/")
 functions <- functions[grep("plot", functions)]
-functions <- functions[-c(4,8, 11)] # plots not used anymore : used to compare teleo and elasmo
+# functions <- functions[c(2,5,9,10)] # functions[3] # plots not used anymore : used to compare teleo and elasmo
+functions <- functions[5]
 
-for (dir in list_dir){ # loop over all phylosem outputs to analyse
+for (dir in list_dir[6]){ # loop over all phylosem outputs to analyse
   
   # What is the chosen model out of the tested SEM models ? 
   chosenSEM = c("TLstdmeca")

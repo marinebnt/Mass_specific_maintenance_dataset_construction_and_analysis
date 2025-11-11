@@ -295,7 +295,7 @@ for (method_plot in c("PCA", "prcomp")){
         fill = Archetypes         
       ),
       colour = "black",          
-      size = 6,
+      size = 7,
       stroke = 1
     ) +
     scale_shape_manual(values = datatoadd$pchvec) +
@@ -329,10 +329,12 @@ for (method_plot in c("PCA", "prcomp")){
     scale_shape_manual(values = datatoadd$pchvec) +
     scale_fill_manual(values = datatoadd$colAA)
   pmedian <- ggplot(df, aes(x = Dim.1, y = Dim.2)) +
-    stat_summary_2d(bins = 25, fun = median, aes(z = metabolism)) +
+    stat_summary_2d(bins = 25, fun = median, aes(z = metabolism), alpha=0.8) +
     scale_fill_gradient(low = "blue", high = "red") +
-    theme_minimal() +
-    labs(x = paste0("PC1 (", round(var_expl[1], digits = 1), "%)"), y = paste0("PC2 (", round(var_expl[2], digits = 1), "%)"), z = "Metabolism")+#, title="Median RMR0 values per area over PCA")+
+    theme_bw() +
+    labs(x = paste0("PC1: Life-cycle speed (", round(var_expl[1], digits = 1), "%)"), 
+         y = paste0("PC2: Reproductive strategy (", round(var_expl[2], digits = 1), "%)"), 
+         fill = "Standardized\nRMR0")+#, title="Median RMR0 values per area over PCA")+
     geom_segment(data = var_coords,
                  aes(x = 0, y = 0, xend = Dim.1*5, yend = Dim.2*5),
                  arrow = arrow(length = unit(0.25, "cm")),
@@ -350,7 +352,7 @@ for (method_plot in c("PCA", "prcomp")){
         fill = Archetypes         
       ),
       colour = "black",          
-      size = 6,
+      size = 8.5,
       stroke = 1
     ) +
     scale_shape_manual(values = datatoadd$pchvec) +
@@ -424,10 +426,12 @@ for (method_plot in c("PCA", "prcomp")){
   colnames(df_reg)[1:2] <- c("Dim.1", "Dim.2") 
 
   pmedian_predicted  <- ggplot(df_reg, aes(x = Dim.1, y = Dim.2)) +
-    stat_summary_2d(bins = 25, fun = median, aes(z = metabolism_predicted)) +
+    stat_summary_2d(bins = 25, fun = median, aes(z = metabolism_predicted), alpha=0.8) +
     scale_fill_gradient(low = "blue", high = "red") +
-    theme_minimal() +
-    labs(x = paste0("PC1 (", round(var_expl[1], digits = 1), "%)"), y = paste0("PC2 (", round(var_expl[2], digits = 1), "%)"), z = "Metabolism")+ 
+    theme_bw() +
+    labs(x = paste0("PC1: Life-cycle speed (", round(var_expl[1], digits = 1), "%)"), 
+         y = paste0("PC2: Reproductive strategy (", round(var_expl[2], digits = 1), "%)"), 
+         fill = "Standardized\nRMR0")+ 
     #, title="Median RMR0 values per area over PCA")+
     geom_segment(data = var_coords,
                  aes(x = 0, y = 0, xend = Dim.1*5, yend = Dim.2*5),
@@ -446,7 +450,7 @@ for (method_plot in c("PCA", "prcomp")){
         fill = Archetypes         
       ),
       colour = "black",          
-      size = 6,
+      size = 8.5,
       stroke = 1
     ) +
     scale_shape_manual(values = datatoadd$pchvec) +
@@ -456,19 +460,22 @@ for (method_plot in c("PCA", "prcomp")){
   
   ggsave(filename = paste0(path_plots, "/", method_plot, "heatmapMEDIANPREDICTED", repo, ".jpeg"),
          ggarrange(pmedian, pmedian_predicted, ncol=2, nrow=1, common.legend = T, legend = "right", labels = c("A", "B")),
-         height = 8, width = 16)
+         height = 6, width = 12)  
+  ggsave(filename = paste0(path_plots, "/", method_plot, "heatmapMEDIANPREDICTED", repo, ".pdf"),
+         ggarrange(pmedian, pmedian_predicted, ncol=2, nrow=1, common.legend = T, legend = "right", labels = c("A", "B")),
+         height = 6, width = 12)
   
   
   #####
-  # save summary of the linear model 
+  # save summary of the linear model_h 
   #####
   
   
-  model <- fit
+  model_h <- fit
   library(dplyr) # for pipe (%>%) command
   library(pixiedust)
   
-  dust(model) %>% 
+  dust(model_h) %>% 
     sprinkle(cols = c("estimate", "std.error", "statistic"), round = 2) %>%
     sprinkle(cols = "p.value", fn = quote(pvalString(value))) %>% 
     sprinkle_colnames("Term", "Coefficient", "SE", "T-statistic", 

@@ -71,12 +71,13 @@ df <- cbind(alpha, cmstd)
 df_mean <- aggregate(df[, 1:3], list(dataphylo$Order), mean)
 # df_mean the family with the highest average value on each archetype is the most representative one of the archetype
 maxAA1 <- df_mean$Group.1[which.max(df_mean$V1)] # unknown family, I prefere to pick another one with df_mean$Group.1[which(df_mean$V1>0.7)]
-maxAA1 <-df_mean$Group.1[which(df_mean$V1>0.6)][1] # unknown family, I prefere to pick another one with df_mean$Group.1[which(df_mean$V1>0.7)]
+maxAA1 <- df_mean$Group.1[which(df_mean$V1>0.6)][1] # unknown family, I prefere to pick another one with df_mean$Group.1[which(df_mean$V1>0.7)]
 # maxAA1 <- "Psettodidae" # pleuronectiformes
 maxAA2 <- df_mean$Group.1[which.max(df_mean$V2)]
 maxAA2 <- df_mean$Group.1[which(df_mean$V2>0.4)][1]
 # maxAA2 <- "Spratelloididae" 
 maxAA3 <- df_mean$Group.1[which.max(df_mean$V3)]
+maxAA3 <- df_mean$Group.1[which(df_mean$V3>0.4)]
 # maxAA3 <- "Cetorhinidae" 
 
 a1 = AAAtot
@@ -93,7 +94,7 @@ genecolour[dataphylo$Family == 'Sparidae'] <- '#00b159' # Mugilidae # *** Labrid
 # genecolour[dataphylo$Family == 'Psettodidae'] <- '#00b159' # Mugilidae # *** Labridae *** # Sparidae #Trichiuridae # Gadidae #Clupeidae # Salmonidae #Scombridae
 # genecolour[dataphylo$Order == maxAA1] <- colAA[1] # Mugilidae # *** Labridae *** # Sparidae #Trichiuridae # Gadidae #Clupeidae # Salmonidae #Scombridae
 # genecolour[dataphylo$Family == maxAA1] <- colAA[1] # Mugilidae # *** Labridae *** # Sparidae #Trichiuridae # Gadidae #Clupeidae # Salmonidae #Scombridae
-genecolour[dataphylo$Order == 'Siluriformes'] <- 'royalblue' #Squlidae #Ariidae
+genecolour[dataphylo$Order == 'Rajiformes'] <- 'royalblue' #Squlidae #Ariidae
 # genecolour[dataphylo$Order == maxAA3] <-colAA[3] #Squlidae #Ariidae
 # genecolour[dataphylo$Family == maxAA3] <-colAA[3] #Squlidae #Ariidae
 # genecolour2[dataphylo$Family == 'Blenniidae'] <- 'black'
@@ -102,7 +103,7 @@ genecolour[dataphylo$Order == 'Siluriformes'] <- 'royalblue' #Squlidae #Ariidae
 
 genecolour_names <-c()
 genecolour_names[2] <- "Sparidae"
-genecolour_names[1] <- "Siluriformes"
+genecolour_names[1] <- "Rajiformes"
 genecolour_names[3] <- "Engraulidae"
 
 colnames(df)[1:4] <-  c("x", "y", "z", "d")
@@ -110,7 +111,7 @@ df <- as.data.frame(df)
 df$group <- genecolour
 # here : the ith label of the ternary plots is associated to the element i of the constants_x/y/z vectors
 constants_x <- c(1, 0.2, 0.05)
-constants_y <- c(0.1, 0.7, 0.025)
+constants_y <- c(0.4, 0.7, 0.025)
 constants_z <- c(0.25, 0.2, 0.25)
 dfLabs <- data.frame(x = constants_x, y = constants_y, z = constants_z)
 
@@ -129,12 +130,12 @@ plot <- ggtern(df,aes(x=x,y=y,z=z)) +
     tern.axis.title.T = element_text(size = 12, angle = 0, hjust = 0.5), # Top axis
     tern.axis.title.L = element_text(size = 12, angle = -58, hjust = 0.5), # Left axis
     tern.axis.title.R = element_text(size = 12, angle = -60, hjust = 1.25, vjust = -0.5), # Right axis
-    plot.title = element_text(size=15, face="bold")
+    plot.title = element_text(size=18, face="bold")
   )+
-  ggtitle("A")+
+  # ggtitle("A")+
   theme_arrowlarge()+
   theme_custom(
-    base_size = 12,
+    base_size = 15,
     base_family = "",
     tern.plot.background = NULL,
     tern.panel.background = NULL,
@@ -148,7 +149,7 @@ plot <- ggtern(df,aes(x=x,y=y,z=z)) +
         tern.axis.text = element_text(size=15)) +
   scale_colour_manual(values = c( maxAA1 = colAA[ieq], 
                                   maxAA2 = colAA[iopp], maxAA3= colAA[ieq]))+
-  geom_label(data = dfLabs, label = genecolour_names, alpha=0.4)
+  geom_label(data = dfLabs, label = genecolour_names, alpha=0.4, size=4.8)
 
 
 plot
